@@ -1,0 +1,70 @@
+.admin-reports {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-6);
+}
+
+.report-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.rep-icon-title {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.rep-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .rep-icon-wrapper {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.rep-icon-title h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-base);
+  margin-bottom: 4px;
+}
+
+.rep-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.rep-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.file-format-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}

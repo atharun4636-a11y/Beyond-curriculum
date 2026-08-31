@@ -1,0 +1,71 @@
+.admin-settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100%;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2px;
+}
+
+.settings-tab-btn {
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settings-tab-btn:hover {
+  color: var(--color-text-base);
+}
+
+.settings-tab-btn.active {
+  color: var(--color-primary-600);
+  border-bottom-color: var(--color-primary-600);
+}
+
+.deactivated-row {
+  opacity: 0.6;
+}
+
+.badge-status.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.badge-status.inactive {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+
+.settings-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.dept-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn-deactivate {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.btn-deactivate:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+}

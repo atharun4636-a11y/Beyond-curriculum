@@ -1,0 +1,145 @@
+.leaderboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.podium-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .podium-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.podium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  position: relative;
+}
+
+.podium-1 {
+  border-top: 4px solid #fbbf24; /* Gold */
+}
+.podium-2 {
+  border-top: 4px solid #94a3b8; /* Silver */
+}
+.podium-3 {
+  border-top: 4px solid #b45309; /* Bronze */
+}
+
+.podium-rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.hot-flame {
+  color: #ef4444;
+  fill: #ef4444;
+  animation: flicker 1s infinite alternate;
+}
+
+@keyframes flicker {
+  to { transform: scale(1.15); opacity: 0.8; }
+}
+
+.rank-gold { color: #fbbf24; fill: #fbbf24; }
+.rank-silver { color: #94a3b8; fill: #94a3b8; }
+.rank-bronze { color: #b45309; fill: #b45309; }
+
+.podium-project {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.podium-score {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-primary-600);
+}
+
+.podium-dept {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.leaderboard-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.filter-group select {
+  padding: 0.6rem var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-base);
+  outline: none;
+}
+
+/* Table Style */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.leaderboard-table th {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.rank-cell {
+  width: 60px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.rank-number {
+  color: var(--color-text-muted);
+}
+
+.proj-title {
+  font-weight: 600;
+  color: var(--color-text-base);
+}
+
+.platform-tag {
+  background-color: var(--color-bg-base);
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.score-cell {
+  color: var(--color-primary-600);
+}

@@ -1,0 +1,403 @@
+.admin-employees {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.section-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-base);
+}
+
+.action-buttons-row {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Controls Box */
+.employees-controls {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.search-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+}
+
+.search-bar input {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  color: var(--color-text-base);
+}
+
+.filter-select {
+  padding: 0.6rem var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-base);
+  outline: none;
+}
+
+/* Table Design */
+.table-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.employees-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.employees-table th, .employees-table td {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.employees-table th {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.emp-table-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.emp-id {
+  font-weight: 600;
+  color: var(--color-primary-600);
+}
+
+.emp-name-cell, .emp-contact-cell, .emp-role-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-name {
+  font-weight: 600;
+  color: var(--color-text-base);
+}
+
+.emp-date, .emp-subtext, .emp-dept {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.emp-role {
+  font-weight: 500;
+}
+
+.emp-score {
+  color: var(--color-primary-600);
+}
+
+.inactive-row {
+  opacity: 0.7;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: none;
+}
+
+.status-badge.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.status-badge.inactive {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+
+/* Action Buttons */
+.actions-cell {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+}
+
+.action-btn.edit {
+  color: var(--color-primary-600);
+}
+.action-btn.edit:hover {
+  background-color: var(--color-primary-50);
+}
+
+.action-btn.delete {
+  color: var(--color-danger);
+}
+.action-btn.delete:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+/* Modal Overlay styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content-wide {
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+}
+
+.modal-close-btn {
+  color: var(--color-text-muted);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Two-column layout for Add/Edit Employee Modal */
+.modal-two-col {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .modal-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-grid-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 540px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-section-card {
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.profile-avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary-600);
+  box-shadow: var(--shadow-md);
+  background-color: var(--color-bg-surface);
+}
+
+.profile-mode-tabs {
+  display: flex;
+  gap: 4px;
+  background-color: var(--color-border);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+.profile-tab-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.profile-tab-btn.active {
+  background-color: var(--color-bg-surface);
+  color: var(--color-primary-600);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Upload Dropzone Box */
+.photo-dropzone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-bg-surface);
+}
+
+.photo-dropzone:hover {
+  border-color: var(--color-primary-500);
+  background-color: var(--color-primary-50);
+}
+
+/* Gallery Selector Grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.gallery-item {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-item.selected {
+  border-color: var(--color-primary-600);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+}
+
+.select-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+/* Import Excel Styles */
+.modal-body-import {
+  display: flex;
+  flex-direction: column;
+}
+
+.csv-template-display {
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--color-primary-700);
+  overflow-x: auto;
+}
+
+[data-theme="dark"] .csv-template-display {
+  color: var(--color-primary-100);
+}
+
+.excel-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-primary-600);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.excel-upload-btn:hover {
+  background-color: var(--color-primary-700);
+}

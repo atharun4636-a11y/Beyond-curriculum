@@ -1,0 +1,46 @@
+.employee-resources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.category-pills {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.pill-btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pill-btn:hover {
+  background-color: var(--color-bg-surface-hover);
+  color: var(--color-text-base);
+}
+
+.pill-btn.active {
+  background-color: var(--color-primary-600);
+  color: white;
+  border-color: var(--color-primary-600);
+}
+
+.bookmark-btn {
+  color: var(--color-text-muted);
+}
+.bookmark-btn:hover {
+  color: var(--color-primary-600);
+}
+.bookmark-btn .bookmarked {
+  color: var(--color-primary-600);
+  fill: var(--color-primary-600);
+}

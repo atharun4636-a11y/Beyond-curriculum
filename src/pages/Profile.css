@@ -1,0 +1,80 @@
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.avatar-upload-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-4);
+}
+
+.profile-avatar-large {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 3px solid var(--color-border);
+}
+
+.avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.avatar-info {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.success-toast-floating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--color-success);
+  color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-weight: 500;
+  z-index: 2000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

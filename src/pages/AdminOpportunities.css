@@ -1,0 +1,29 @@
+.admin-opportunities {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.opportunities-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.opportunities-table th,
+.opportunities-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.opportunities-table th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  background-color: var(--color-bg-base);
+}
+
+.source-badge {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
