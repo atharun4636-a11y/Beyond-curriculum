@@ -12,8 +12,46 @@ import {
 } from 'lucide-react';
 import './AdminEvaluations.css';
 
+import { getAdminHackathonRegistrations, verifyHackathonRegistration } from '../utils/api';
+
 export const AdminEvaluations = () => {
   const [submissions, setSubmissions] = useState(() => getDB('submissions', defaultSubmissions));
+
+  // Fetch live hackathon proof submissions & certificate uploads from backend
+  useEffect(() => {
+    const fetchLiveProofs = async () => {
+      try {
+        const liveProofs = await getAdminHackathonRegistrations();
+        if (liveProofs && liveProofs.length > 0) {
+          const mappedProofs = liveProofs.map(p => ({
+            id: `proof-${p.id}`,
+            registrationId: p.id,
+            employeeName: p.employeeName || p.employeeId,
+            employeeId: p.employeeId,
+            projectTitle: `Registration Proof: ${p.hackathonName || 'Hackathon Event'}`,
+            hackathonTitle: p.hackathonName || 'Hackathon Event',
+            type: 'Hackathon Proof Registration',
+            submittedAt: p.registeredAt ? p.registeredAt.split('T')[0] : 'Today',
+            status: p.registrationStatus === 'VERIFIED' ? 'Reviewed' : 'Needs Manual Review',
+            proofScreenshot: p.proofScreenshot,
+            proofUrl: p.proofUrl,
+            notes: p.notes,
+            submissionUrl: p.proofUrl || p.proofScreenshot || 'https://unstop.com',
+            evalMode: 'Manual',
+            finalScore: p.registrationStatus === 'VERIFIED' ? 100 : 0
+          }));
+          setSubmissions(prev => {
+            const proofIds = new Set(mappedProofs.map(mp => mp.id));
+            const existingNonProofs = prev.filter(item => !proofIds.has(item.id));
+            return [...mappedProofs, ...existingNonProofs];
+          });
+        }
+      } catch (e) {
+        console.warn('Could not fetch live hackathon proof registrations:', e);
+      }
+    };
+    fetchLiveProofs();
+  }, []);
 
   // Sync with localStorage
   useEffect(() => {
