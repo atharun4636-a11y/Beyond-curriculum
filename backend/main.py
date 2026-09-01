@@ -2587,6 +2587,7 @@ def get_employee_communication_progress_api(employee_id: Optional[str] = "EMP001
         "wordsLearned": words_learned,
         "wordsCorrectlyUsed": words_correct,
         "submissions": submissions
+    }
 # ==================== CERTIFICATES & BADGES ENDPOINTS ====================
 
 @app.get("/api/certificates")
