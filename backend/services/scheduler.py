@@ -66,6 +66,9 @@ def _background_loop():
 
 
 def start_scheduler():
+    if os.environ.get("VERCEL"):
+        print("[Scheduler] Serverless environment detected (Vercel): Skipping background daemon thread.")
+        return
     global _SCHEDULER_RUNNING
     with _SCHEDULER_LOCK:
         if _SCHEDULER_RUNNING:

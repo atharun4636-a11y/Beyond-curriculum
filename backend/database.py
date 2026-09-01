@@ -19,7 +19,7 @@ else:
 
 def get_db_connection():
     if os.environ.get("VERCEL"):
-        if not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
+        if (not os.path.exists(DB_PATH) or (os.path.exists(DB_PATH) and os.path.getsize(DB_PATH) == 0)) and os.path.exists(ORIG_DB_PATH):
             try:
                 shutil.copyfile(ORIG_DB_PATH, DB_PATH)
             except Exception:
