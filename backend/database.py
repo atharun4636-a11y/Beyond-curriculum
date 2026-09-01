@@ -18,15 +18,19 @@ else:
     DB_PATH = ORIG_DB_PATH
 
 def get_db_connection():
-    if os.environ.get("VERCEL") and not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
-        try:
-            shutil.copyfile(ORIG_DB_PATH, DB_PATH)
-        except Exception:
-            pass
+    if os.environ.get("VERCEL"):
+        if not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
+            try:
+                shutil.copyfile(ORIG_DB_PATH, DB_PATH)
+            except Exception:
+                pass
     conn = sqlite3.connect(DB_PATH, timeout=60.0)
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute("PRAGMA journal_mode=WAL;")
+        if not os.environ.get("VERCEL"):
+            conn.execute("PRAGMA journal_mode=WAL;")
+        else:
+            conn.execute("PRAGMA journal_mode=MEMORY;")
         conn.execute("PRAGMA busy_timeout=60000;")
     except Exception:
         pass
