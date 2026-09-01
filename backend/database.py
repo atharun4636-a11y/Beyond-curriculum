@@ -785,6 +785,24 @@ def init_db():
         )
     """)
 
+    # 18. External Certificates & Badges Verification Table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS certificates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employeeId TEXT NOT NULL,
+            employeeName TEXT NOT NULL,
+            title TEXT NOT NULL,
+            fileUrl TEXT DEFAULT '',
+            fileData TEXT DEFAULT '',
+            dateUploaded TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Pending',
+            reviewedAt TEXT,
+            reviewedBy TEXT,
+            createdAt TEXT,
+            updatedAt TEXT
+        )
+    """)
+
     # Seed default hackathons if empty
     cursor.execute("SELECT COUNT(*) FROM hackathons")
     h_count_row = cursor.fetchone()

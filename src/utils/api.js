@@ -992,6 +992,41 @@ export const syncAllSources = async () => {
   return results;
 };
 
+export const getCertificates = async (employeeId = null) => {
+  try {
+    const url = employeeId ? `${API_BASE_URL}/api/certificates?employee_id=${encodeURIComponent(employeeId)}` : `${API_BASE_URL}/api/certificates`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch certificates:', error);
+    return [];
+  }
+};
+
+export const uploadCertificate = async (data) => {
+  const response = await fetch(`${API_BASE_URL}/api/certificates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to upload certificate');
+  }
+  return await response.json();
+};
+
+export const updateCertificateStatus = async (id, status) => {
+  const response = await fetch(`${API_BASE_URL}/api/certificates/${id}/status`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  return await response.json();
+};
+
 
 
 

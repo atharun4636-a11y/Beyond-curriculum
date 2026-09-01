@@ -2587,7 +2587,72 @@ def get_employee_communication_progress_api(employee_id: Optional[str] = "EMP001
         "wordsLearned": words_learned,
         "wordsCorrectlyUsed": words_correct,
         "submissions": submissions
+# ==================== CERTIFICATES & BADGES ENDPOINTS ====================
+
+@app.get("/api/certificates")
+def get_certificates_api(employee_id: Optional[str] = None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    if employee_id:
+        cursor.execute("SELECT * FROM certificates WHERE employeeId = ? ORDER BY id DESC", (employee_id,))
+    else:
+        cursor.execute("SELECT * FROM certificates ORDER BY id DESC")
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return rows
+
+@app.post("/api/certificates")
+def create_certificate_api(data: dict):
+    title = data.get("title", "").strip()
+    emp_id = data.get("employeeId", "EMP001")
+    emp_name = data.get("employeeName", "Employee")
+    file_url = data.get("fileUrl", "")
+    file_data = data.get("fileData", "")
+    date_uploaded = datetime.now().strftime("%Y-%m-%d")
+    now_str = datetime.now().isoformat()
+
+    if not title:
+        raise HTTPException(status_code=400, detail="Certificate title is required")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO certificates (employeeId, employeeName, title, fileUrl, fileData, dateUploaded, status, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?)
+    """, (emp_id, emp_name, title, file_url, file_data, date_uploaded, now_str, now_str))
+    new_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {
+        "success": True,
+        "message": "Certificate uploaded successfully! Awaiting Admin review.",
+        "id": new_id,
+        "certificate": {
+            "id": new_id,
+            "employeeId": emp_id,
+            "employeeName": emp_name,
+            "title": title,
+            "fileUrl": file_url,
+            "fileData": file_data,
+            "dateUploaded": date_uploaded,
+            "status": "Pending"
+        }
     }
+
+@app.post("/api/certificates/{id}/status")
+def update_certificate_status_api(id: int, data: dict):
+    new_status = data.get("status", "Approved")
+    reviewer = data.get("reviewer", "Admin")
+    now_str = datetime.now().isoformat()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE certificates SET status = ?, reviewedAt = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?
+    """, (new_status, now_str, reviewer, now_str, id))
+    conn.commit()
+    conn.close()
+    return {"success": True, "message": f"Certificate status updated to {new_status}"}
 
 
 if __name__ == "__main__":
