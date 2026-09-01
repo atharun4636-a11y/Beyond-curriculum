@@ -7,7 +7,7 @@ import {
   Eye, Check, X, ShieldAlert, ExternalLink, MessageSquare, Clock, Filter, Sparkles
 } from 'lucide-react';
 import { 
-  syncSource, getAdminHackathonRegistrations, verifyHackathonRegistration, 
+  syncSource, getSources, getAdminHackathonRegistrations, verifyHackathonRegistration, 
   rejectHackathonRegistration, getAdminDashboardMetrics 
 } from '../utils/api';
 import './AdminDashboard.css';
@@ -34,7 +34,7 @@ export const AdminDashboard = () => {
     setIsLoading(true);
     try {
       const [sourcesResp, metricsResp, regsResp] = await Promise.all([
-        fetch('http://localhost:8000/api/sources').then(r => r.ok ? r.json() : []).catch(() => []),
+        getSources(),
         getAdminDashboardMetrics(),
         getAdminHackathonRegistrations()
       ]);

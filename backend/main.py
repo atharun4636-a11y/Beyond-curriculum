@@ -1126,15 +1126,20 @@ def trigger_all_resources_sync():
     return sync_resources()
 
 @app.post("/api/resources/sources/{id}/sync")
-def trigger_resource_source_sync(id: int):
+def trigger_resource_source_sync(id: str):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT code FROM sources WHERE id = ?", (id,))
-    row = cursor.fetchone()
-    conn.close()
+    row = None
+    if id.isdigit():
+        cursor.execute("SELECT code FROM sources WHERE id = ?", (int(id),))
+        row = cursor.fetchone()
     if not row:
-        raise HTTPException(status_code=404, detail=f"Source ID {id} not found")
-    return sync_resources(row["code"])
+        cursor.execute("SELECT code FROM sources WHERE UPPER(code) = UPPER(?) OR UPPER(name) = UPPER(?)", (id, id))
+        row = cursor.fetchone()
+    conn.close()
+    
+    source_code = row["code"] if row else id
+    return sync_resources(source_code)
 
 @app.get("/api/resources", response_model=List[LearningResourceResponse])
 def get_all_resources():

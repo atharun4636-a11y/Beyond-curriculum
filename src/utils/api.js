@@ -277,6 +277,33 @@ export const getResourcesByDepartment = async (departmentId) => {
   }
 };
 
+export const getSources = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/sources`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch sources:', error);
+    return [];
+  }
+};
+
+export const syncSource = async (sourceId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/resources/sources/${sourceId}/sync`, { method: 'POST' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to sync source ${sourceId}:`, error);
+    throw error;
+  }
+};
+
 export const syncResources = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/resources/sync`, { method: 'POST' });
@@ -381,19 +408,6 @@ export const syncCodingPractice = async () => {
     return await response.json();
   } catch (error) {
     console.error('Failed to sync coding practice:', error);
-    throw error;
-  }
-};
-
-export const syncSource = async (sourceId) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/sources/${sourceId}/sync`, { method: 'POST' });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Failed to sync source ${sourceId}:`, error);
     throw error;
   }
 };
