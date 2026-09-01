@@ -809,5 +809,13 @@ def init_db():
         FROM hackathons h, departments d
         WHERE h.isActive = 1 AND d.isActive = 1
     """, (now,))
+
+    # Map all active opportunities (webinars, tech events, masterclasses) to active departments
+    cursor.execute("""
+        INSERT OR IGNORE INTO opportunity_departments (opportunityId, departmentId, createdAt)
+        SELECT o.id, d.id, ?
+        FROM opportunities o, departments d
+        WHERE o.isActive = 1 AND d.isActive = 1
+    """, (now,))
     conn.commit()
     conn.close()

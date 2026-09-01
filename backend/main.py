@@ -2266,8 +2266,8 @@ def get_opportunities_by_department(departmentId: int):
     cursor.execute("""
         SELECT DISTINCT o.*
         FROM opportunities o
-        JOIN opportunity_departments od ON o.id = od.opportunityId
-        WHERE od.departmentId = ? AND o.isActive = 1
+        LEFT JOIN opportunity_departments od ON o.id = od.opportunityId
+        WHERE (od.departmentId = ? OR od.departmentId IS NULL) AND o.isActive = 1
         ORDER BY o.startDate ASC, o.id DESC
     """, (departmentId,))
     rows = cursor.fetchall()
