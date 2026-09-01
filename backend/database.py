@@ -7,23 +7,111 @@ import shutil
 
 ORIG_DB_PATH = os.path.join(os.path.dirname(__file__), "hackathons.db")
 
-if os.environ.get("VERCEL"):
-    DB_PATH = "/tmp/hackathons.db"
-    if not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
+# PostgreSQL Wrapper Classes for transparent SQLite / PostgreSQL compatibility
+class PgCursorWrapper:
+    def __init__(self, pg_cursor):
+        self.cursor = pg_cursor
+
+    def execute(self, sql, params=None):
+        pg_sql = sql.replace('?', '%s')
+        if 'INSERT OR IGNORE' in pg_sql:
+            pg_sql = pg_sql.replace('INSERT OR IGNORE', 'INSERT')
+            if 'ON CONFLICT' not in pg_sql:
+                pg_sql += ' ON CONFLICT DO NOTHING'
+        if 'INSERT OR REPLACE' in pg_sql:
+            pg_sql = pg_sql.replace('INSERT OR REPLACE', 'INSERT')
+            if 'ON CONFLICT' not in pg_sql:
+                pg_sql += ' ON CONFLICT DO NOTHING'
+        
+        if pg_sql.strip().upper().startswith('PRAGMA'):
+            return self
+
+        if params is None:
+            self.cursor.execute(pg_sql)
+        else:
+            self.cursor.execute(pg_sql, params)
+        return self
+
+    def executemany(self, sql, seq_of_params):
+        pg_sql = sql.replace('?', '%s')
+        if 'INSERT OR IGNORE' in pg_sql:
+            pg_sql = pg_sql.replace('INSERT OR IGNORE', 'INSERT')
+            if 'ON CONFLICT' not in pg_sql:
+                pg_sql += ' ON CONFLICT DO NOTHING'
+        self.cursor.executemany(pg_sql, seq_of_params)
+        return self
+
+    def fetchone(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    def fetchall(self):
+        rows = self.cursor.fetchall()
+        if not rows:
+            return []
+        return [dict(r) for r in rows]
+
+    @property
+    def lastrowid(self):
         try:
-            shutil.copyfile(ORIG_DB_PATH, DB_PATH)
+            res = self.cursor.fetchone()
+            if res and isinstance(res, dict):
+                return list(res.values())[0]
+            if res:
+                return res[0]
         except Exception:
             pass
-else:
-    DB_PATH = ORIG_DB_PATH
+        return None
+
+class PgConnectionWrapper:
+    def __init__(self, pg_conn):
+        self.conn = pg_conn
+
+    def cursor(self):
+        import psycopg2.extras
+        return PgCursorWrapper(self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+
+    def commit(self):
+        try:
+            self.conn.commit()
+        except Exception:
+            pass
+
+    def close(self):
+        try:
+            self.conn.close()
+        except Exception:
+            pass
+
+    def execute(self, sql, params=None):
+        cur = self.cursor()
+        cur.execute(sql, params)
+        return cur
 
 def get_db_connection():
+    db_url = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL")
+    if db_url:
+        import psycopg2
+        import psycopg2.extras
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        return PgConnectionWrapper(conn)
+
+    # Local / Serverless SQLite Fallback
     if os.environ.get("VERCEL"):
+        DB_PATH = "/tmp/hackathons.db"
         if (not os.path.exists(DB_PATH) or (os.path.exists(DB_PATH) and os.path.getsize(DB_PATH) == 0)) and os.path.exists(ORIG_DB_PATH):
             try:
                 shutil.copyfile(ORIG_DB_PATH, DB_PATH)
             except Exception:
                 pass
+    else:
+        DB_PATH = ORIG_DB_PATH
+
     conn = sqlite3.connect(DB_PATH, timeout=60.0)
     conn.row_factory = sqlite3.Row
     try:
