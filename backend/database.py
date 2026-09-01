@@ -785,5 +785,32 @@ def init_db():
         )
     """)
 
+    # Seed default hackathons if empty
+    cursor.execute("SELECT COUNT(*) FROM hackathons")
+    h_count_row = cursor.fetchone()
+    h_count = h_count_row[0] if h_count_row else 0
+    if h_count == 0:
+        default_hacks = [
+            ("AI Revolution Hackathon 2026", "Build next-generation generative AI agents for enterprise workflow automation.", "Google & OpenAI", "Online", "Global", "https://unstop.com", "2026-09-30", "2026-10-05", "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=60", "Build innovative AI solutions.", "UNSTOP", "1", "Generative AI", "Python, LangChain, FastAPI", "All Engineering Stream", "1-4 Members"),
+            ("CodeArena 2026", "High-speed algorithmic problem solving and optimization contest.", "HackerRank", "Online", "Global", "https://hackerrank.com", "2026-09-25", "2026-09-28", "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&auto=format&fit=crop&q=60", "Algorithmic speed challenge.", "HACKERRANK", "2", "Algorithms", "Python, C++, Java, Data Structures", "Open to All", "Individual"),
+            ("Innovest 3.0", "Cloud-native microservices architecture and serverless data pipeline hackathon.", "AWS & Microsoft", "Hybrid", "Bengaluru, India", "https://devpost.com", "2026-10-15", "2026-10-20", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60", "Build resilient cloud systems.", "DEVPOST", "3", "Cloud & DevOps", "AWS, Docker, PySpark, SQL", "Full-time Employees", "2-5 Members")
+        ]
+        for name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz in default_hacks:
+            cursor.execute("""
+                INSERT INTO hackathons (name, statement, organizer, mode, location, regLink, lastDate, eventDate, poster, description, source, sourceId, category, skills, eligibility, teamSize, isActive, createdAt, updatedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+            """, (name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz, now, now))
+        conn.commit()
+
+        # Map to all departments
+        cursor.execute("SELECT id FROM hackathons")
+        h_ids = [r[0] for r in cursor.fetchall()]
+        cursor.execute("SELECT id FROM departments")
+        d_ids = [r[0] for r in cursor.fetchall()]
+        for h_id in h_ids:
+            for d_id in d_ids:
+                cursor.execute("INSERT OR IGNORE INTO hackathon_departments (hackathonId, departmentId, createdAt) VALUES (?, ?, ?)", (h_id, d_id, now))
+        conn.commit()
+
     conn.commit()
     conn.close()
