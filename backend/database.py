@@ -7,26 +7,26 @@ import shutil
 
 ORIG_DB_PATH = os.path.join(os.path.dirname(__file__), "hackathons.db")
 
-if os.environ.get("VERCEL"):
-    DB_PATH = "/tmp/hackathons.db"
-    if not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
-        try:
-            shutil.copyfile(ORIG_DB_PATH, DB_PATH)
-        except Exception:
-            pass
-else:
-    DB_PATH = ORIG_DB_PATH
+def get_target_db_path():
+    if os.environ.get("VERCEL") or not os.access(os.path.dirname(ORIG_DB_PATH), os.W_OK):
+        tmp_path = "/tmp/hackathons.db"
+        if not os.path.exists(tmp_path) and os.path.exists(ORIG_DB_PATH):
+            try:
+                shutil.copyfile(ORIG_DB_PATH, tmp_path)
+            except Exception:
+                pass
+        return tmp_path if os.path.exists(tmp_path) or os.access("/tmp", os.W_OK) else ORIG_DB_PATH
+    return ORIG_DB_PATH
+
+DB_PATH = get_target_db_path()
 
 def get_db_connection():
-    if os.environ.get("VERCEL") and not os.path.exists(DB_PATH) and os.path.exists(ORIG_DB_PATH):
-        try:
-            shutil.copyfile(ORIG_DB_PATH, DB_PATH)
-        except Exception:
-            pass
-    conn = sqlite3.connect(DB_PATH, timeout=60.0)
+    db_path = get_target_db_path()
+    conn = sqlite3.connect(db_path, timeout=60.0)
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute("PRAGMA journal_mode=WAL;")
+        if not os.environ.get("VERCEL"):
+            conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA busy_timeout=60000;")
     except Exception:
         pass
