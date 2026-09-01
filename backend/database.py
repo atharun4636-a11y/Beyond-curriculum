@@ -802,15 +802,12 @@ def init_db():
             """, (name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz, now, now))
         conn.commit()
 
-        # Map to all departments
-        cursor.execute("SELECT id FROM hackathons")
-        h_ids = [r[0] for r in cursor.fetchall()]
-        cursor.execute("SELECT id FROM departments")
-        d_ids = [r[0] for r in cursor.fetchall()]
-        for h_id in h_ids:
-            for d_id in d_ids:
-                cursor.execute("INSERT OR IGNORE INTO hackathon_departments (hackathonId, departmentId, createdAt) VALUES (?, ?, ?)", (h_id, d_id, now))
-        conn.commit()
-
+    # Map all active hackathons to active departments so they appear on Employee pages
+    cursor.execute("""
+        INSERT OR IGNORE INTO hackathon_departments (hackathonId, departmentId, createdAt)
+        SELECT h.id, d.id, ?
+        FROM hackathons h, departments d
+        WHERE h.isActive = 1 AND d.isActive = 1
+    """, (now,))
     conn.commit()
     conn.close()

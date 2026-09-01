@@ -690,6 +690,14 @@ def create_hackathon(hackathon: HackathonCreate):
         hackathon.teamSize, hackathon.lastSyncedAt, 1 if hackathon.isActive else 0, now, now
     ))
     new_id = cursor.lastrowid
+    
+    # Auto-map created hackathon to active departments so employees can view it
+    cursor.execute("SELECT id FROM departments WHERE isActive = 1")
+    dept_rows = cursor.fetchall()
+    for d_row in dept_rows:
+        dept_id = d_row["id"] if isinstance(d_row, dict) or hasattr(d_row, "keys") else d_row[0]
+        cursor.execute("INSERT OR IGNORE INTO hackathon_departments (hackathonId, departmentId, createdAt) VALUES (?, ?, ?)", (new_id, dept_id, now))
+    
     conn.commit()
     cursor.execute("SELECT * FROM hackathons WHERE id = ?", (new_id,))
     row = cursor.fetchone()
