@@ -2,16 +2,31 @@ import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Search, Plus, Edit, Trash2, Calendar, MapPin, ExternalLink, X, Clock, CheckCircle, AlertOctagon, HelpCircle } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Calendar, MapPin, ExternalLink, X, Clock, CheckCircle, AlertOctagon, HelpCircle, RefreshCw } from 'lucide-react';
 import { getDB, setDB, defaultEvents } from '../utils/db';
-import { getHackathons, createHackathon, updateHackathon, deleteHackathon } from '../utils/api';
+import { getHackathons, createHackathon, updateHackathon, deleteHackathon, syncAllSources } from '../utils/api';
 import './AdminEvents.css';
 
 export const AdminEvents = () => {
   const [events, setEvents] = useState(() => getDB('events', defaultEvents));
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [eligibilityFilter, setEligibilityFilter] = useState('All'); // 'All' | 'eligible' | 'not_eligible' | 'uncertain'
+
+  const handleSyncAll = async () => {
+    setIsSyncing(true);
+    try {
+      await syncAllSources();
+      await loadHackathons();
+      alert('All external hackathon sources (Unstop, Devpost, HackerEarth, DEV.to) synced successfully!');
+    } catch (err) {
+      console.error('Error syncing all sources:', err);
+      await loadHackathons();
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Sync to localStorage as fallback / backup
   useEffect(() => {
@@ -126,9 +141,14 @@ export const AdminEvents = () => {
           <h1>Hackathons & Events Directory</h1>
           <p className="subtitle">Launch company hackathons & monitor automatic external employee-eligible syncs</p>
         </div>
-        <Button onClick={handleOpenAdd}>
-          <Plus size={18} /> Create Event
-        </Button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Button variant="secondary" onClick={handleSyncAll} disabled={isSyncing}>
+            <RefreshCw size={18} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing All Sources..." : "Sync All Sources"}
+          </Button>
+          <Button onClick={handleOpenAdd}>
+            <Plus size={18} /> Create Event
+          </Button>
+        </div>
       </div>
 
       <Card className="events-controls" style={{ padding: '1rem', marginBottom: '1.5rem' }}>

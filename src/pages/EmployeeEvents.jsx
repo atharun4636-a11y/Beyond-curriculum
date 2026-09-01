@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Search, Calendar, MapPin, Clock, ExternalLink, Filter, Sparkles, Tag, Users, ShieldAlert, CheckCircle, Upload, FileText, X } from 'lucide-react';
+import { Search, Calendar, MapPin, Clock, ExternalLink, Filter, Sparkles, Tag, Users, ShieldAlert, CheckCircle, Upload, FileText, X, RefreshCw } from 'lucide-react';
 import { getDB, defaultEmployees, defaultDepartments } from '../utils/db';
-import { getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations } from '../utils/api';
+import { getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations, syncAllSources } from '../utils/api';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import '../pages/AdminEvents.css';
 import './EmployeeEvents.css';
 
 export const EmployeeEvents = () => {
+  const [isSyncing, setIsSyncing] = useState(false);
   const [employeeDeptId, setEmployeeDeptId] = useState(() => {
     try {
       const userString = localStorage.getItem('user');
@@ -195,15 +196,32 @@ export const EmployeeEvents = () => {
     return matchesSearch && matchesMode && matchesSource;
   });
 
+  const handleSyncAll = async () => {
+    setIsSyncing(true);
+    try {
+      await syncAllSources();
+      await fetchDepartmentHackathons(employeeDeptId);
+      alert('All external hackathon sources synced successfully!');
+    } catch (err) {
+      console.error('Sync all sources error:', err);
+      await fetchDepartmentHackathons(employeeDeptId);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="employee-events-page">
-      <div className="events-header">
+      <div className="events-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Department Hackathons & Competitions</h1>
           <p className="subtitle">
             Curated employee-eligible hackathons for <strong>{currentDept.name}</strong>. Register and submit your registration proof for Admin verification.
           </p>
         </div>
+        <Button variant="secondary" onClick={handleSyncAll} disabled={isSyncing}>
+          <RefreshCw size={16} className={isSyncing ? "spin" : ""} /> {isSyncing ? "Syncing..." : "Sync All Sources"}
+        </Button>
       </div>
 
       {/* Filter Bar */}

@@ -978,6 +978,20 @@ export const getEmployeeCommunicationProgress = async (employeeId) => {
   }
 };
 
+export const syncAllSources = async () => {
+  const sources = ['UNSTOP', 'DEVPOST', 'HACKEREARTH', 'DEVTO'];
+  const results = [];
+  for (const src of sources) {
+    try {
+      const res = await syncSource(src);
+      results.push(res);
+    } catch (e) {
+      console.warn(`Sync source ${src} warning:`, e);
+    }
+  }
+  return results;
+};
+
 
 
 
