@@ -1915,24 +1915,24 @@ def get_employee_performance_progress(employee_id: str):
         # 2. Fetch AI Communication Module Stats
         cursor.execute("""
             SELECT 
-                COUNT(*) as submission_count,
-                AVG(grammar_score) as avg_grammar,
-                AVG(vocabulary_score) as avg_vocab,
-                AVG(pronunciation_score) as avg_pronun,
-                AVG(overall_score) as avg_overall
-            FROM communication_submissions 
-            WHERE employee_id = ?
+                COUNT(s.id) as submission_count,
+                AVG(r.grammarScore) as avg_grammar,
+                AVG(r.vocabularyScore) as avg_vocab,
+                AVG(r.overallScore) as avg_overall
+            FROM communication_submissions s
+            LEFT JOIN communication_ai_results r ON s.id = r.submissionId
+            WHERE s.employeeId = ?
         """, (employee_id,))
         comm_row = cursor.fetchone()
 
         comm_submissions = comm_row["submission_count"] if comm_row and comm_row["submission_count"] else 0
         avg_grammar = round(comm_row["avg_grammar"] or 78.0, 1)
         avg_vocab = round(comm_row["avg_vocab"] or 82.0, 1)
-        avg_pronun = round(comm_row["avg_pronun"] or 75.0, 1)
+        avg_pronun = round((avg_grammar + avg_vocab) / 2, 1)
         avg_comm_overall = round(comm_row["avg_overall"] or 78.5, 1)
 
         # 3. Hackathons & Projects
-        cursor.execute("SELECT COUNT(*) FROM hackathons WHERE status = 'REGISTERED' OR isEnrolled = 1")
+        cursor.execute("SELECT COUNT(*) FROM hackathons WHERE isActive = 1")
         hack_res = cursor.fetchone()
         hackathons_cnt = hack_res[0] if hack_res and hack_res[0] else 2
 
