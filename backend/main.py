@@ -513,25 +513,27 @@ def delete_source(id: int):
     return {"status": "success", "message": f"Source with ID {id} has been deleted successfully."}
 
 @app.post("/api/sources/{id}/sync")
-def trigger_source_sync(id: int):
+def trigger_source_sync(id: str):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM sources WHERE id = ?", (id,))
+    if id.isdigit():
+        cursor.execute("SELECT * FROM sources WHERE id = ?", (int(id),))
+    else:
+        cursor.execute("SELECT * FROM sources WHERE UPPER(code) = UPPER(?) OR UPPER(name) = UPPER(?)", (id, id))
+    
     row = cursor.fetchone()
     conn.close()
     
-    if not row:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Source with ID {id} not found"
-        )
-    
-    source = dict(row)
-    code = source["code"]
+    code = ""
+    if row:
+        source = dict(row)
+        code = source["code"].upper()
+    else:
+        code = str(id).upper()
 
     if code in ["GITHUB", "DEVTO"]:
         return sync_resources(code)
-    elif code in ["CODEFORCES", "LEETCODE", "HACKEREARTH"]:
+    elif code in ["CODEFORCES", "LEETCODE"]:
         return sync_coding_problems(code)
     else:
         return sync_source(code)
