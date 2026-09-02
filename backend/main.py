@@ -1,3 +1,16 @@
+
+def fetch_val(res):
+    if not res:
+        return 0
+    if isinstance(res, dict):
+        val = list(res.values())[0]
+        return val if val is not None else 0
+    try:
+        val = res[0]
+        return val if val is not None else 0
+    except Exception:
+        return 0
+
 from fastapi import FastAPI, HTTPException, Header, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -383,7 +396,7 @@ def get_sources_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM sources")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         cursor.execute("SELECT id, name, code, sourceType, lastSyncAt FROM sources WHERE isActive = 1")
         active_sources = [dict(row) for row in cursor.fetchall()]
         conn.close()
@@ -547,7 +560,7 @@ def get_hackathons_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM hackathons")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         conn.close()
         return {
             "status": "ok",
@@ -770,7 +783,7 @@ def get_departments_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM departments")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         cursor.execute("SELECT id, name, code FROM departments WHERE isActive = 1")
         active_depts = [dict(row) for row in cursor.fetchall()]
         conn.close()
@@ -1111,9 +1124,9 @@ def get_resources_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM learning_resources")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         cursor.execute("SELECT COUNT(*) FROM learning_resource_departments")
-        total_mappings = cursor.fetchone()[0]
+        total_mappings = fetch_val(cursor.fetchone())
         conn.close()
         return {
             "status": "ok",
@@ -1167,19 +1180,19 @@ def get_resource_stats_api():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM learning_resources")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM learning_resources WHERE isActive = 1 AND status = 'ACTIVE'")
-        active = cursor.fetchone()[0]
+        active = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM learning_resources WHERE sourceId LIKE 'auto_%'")
-        auto_gen = cursor.fetchone()[0]
+        auto_gen = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM learning_resources WHERE author = 'Admin' AND (sourceId NOT LIKE 'auto_%' OR sourceId IS NULL)")
-        manual = cursor.fetchone()[0]
+        manual = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(DISTINCT resourceId) FROM hackathon_resources")
-        hackathon_related = cursor.fetchone()[0]
+        hackathon_related = fetch_val(cursor.fetchone())
 
         cursor.execute("""
             SELECT d.name as deptName, COUNT(lrd.learningResourceId) as count
@@ -1426,9 +1439,9 @@ def get_coding_practice_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM coding_problems")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         cursor.execute("SELECT COUNT(*) FROM coding_problem_departments")
-        total_mappings = cursor.fetchone()[0]
+        total_mappings = fetch_val(cursor.fetchone())
         conn.close()
         return {
             "status": "ok",
@@ -2166,19 +2179,19 @@ def get_admin_dashboard_metrics_api():
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT COUNT(*) FROM employee_hackathon_registrations")
-        total_hack_regs = cursor.fetchone()[0]
+        total_hack_regs = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM employee_hackathon_registrations WHERE registrationStatus = 'PROOF_SUBMITTED'")
-        pending_hack_proofs = cursor.fetchone()[0]
+        pending_hack_proofs = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM employee_hackathon_registrations WHERE registrationStatus = 'VERIFIED'")
-        verified_hack_proofs = cursor.fetchone()[0]
+        verified_hack_proofs = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM employee_coding_assignments WHERE status = 'VERIFIED'")
-        verified_coding = cursor.fetchone()[0]
+        verified_coding = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM employee_coding_assignments WHERE status = 'SUBMITTED'")
-        pending_coding_reviews = cursor.fetchone()[0]
+        pending_coding_reviews = fetch_val(cursor.fetchone())
 
         cursor.execute("SELECT COUNT(*) FROM communication_submissions")
         comm_res = cursor.fetchone()
@@ -2191,11 +2204,11 @@ def get_admin_dashboard_metrics_api():
             SELECT r.*, h.name as hackathonName, e.name as employeeName
             FROM employee_hackathon_registrations r
             JOIN hackathons h ON r.hackathonId = h.id
-            LEFT JOIN employees e ON (r.employeeId = e.employeeId OR r.employeeId = CAST(e.id AS TEXT) OR LOWER(r.employeeId) = LOWER(e.email))
+            LEFT JOIN employees e ON (LOWER(r.employeeId) = LOWER(e.employeeId) OR r.employeeId = CAST(e.id AS TEXT) OR LOWER(r.employeeId) = LOWER(e.email))
             ORDER BY r.registeredAt DESC LIMIT 5
         """)
         for r in cursor.fetchall():
-            emp_name = r["employeeName"] or ("MittapalliBhanu Vardhanreddy" if str(r["employeeId"]) in ("EMP001", "252", "9") else "Employee " + str(r["employeeId"]))
+            emp_name = r.get("employeeName") or ("Employee " + str(r["employeeId"]))
             activity_stream.append({
                 "type": "HACKATHON_REGISTRATION",
                 "employee": emp_name,
@@ -2208,18 +2221,19 @@ def get_admin_dashboard_metrics_api():
             SELECT s.*, p.title as problemTitle, e.name as employeeName
             FROM coding_submissions s
             JOIN coding_problems p ON s.problemId = p.id
-            LEFT JOIN employees e ON (s.employeeId = e.employeeId OR s.employeeId = CAST(e.id AS TEXT) OR LOWER(s.employeeId) = LOWER(e.email))
+            LEFT JOIN employees e ON (LOWER(s.employeeId) = LOWER(e.employeeId) OR s.employeeId = CAST(e.id AS TEXT) OR LOWER(s.employeeId) = LOWER(e.email))
             ORDER BY s.submittedAt DESC LIMIT 5
         """)
         for s in cursor.fetchall():
-            emp_name = s["employeeName"] or ("MittapalliBhanu Vardhanreddy" if str(s["employeeId"]) in ("EMP001", "252", "9") else "Employee " + str(s["employeeId"]))
+            emp_name = s.get("employeeName") or ("Employee " + str(s["employeeId"]))
             activity_stream.append({
                 "type": "CODING_SUBMISSION",
                 "employee": emp_name,
                 "title": f"Submitted Solution for {s['problemTitle']}",
                 "timestamp": s["submittedAt"],
-                "status": s["reviewStatus"] or "SUBMITTED"
+                "status": s.get("reviewStatus") or "SUBMITTED"
             })
+
 
         activity_stream.sort(key=lambda x: x["timestamp"] or "", reverse=True)
 
@@ -2251,9 +2265,9 @@ def get_opportunities_health():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM opportunities")
-        total = cursor.fetchone()[0]
+        total = fetch_val(cursor.fetchone())
         cursor.execute("SELECT COUNT(*) FROM opportunity_departments")
-        total_mappings = cursor.fetchone()[0]
+        total_mappings = fetch_val(cursor.fetchone())
         conn.close()
         return {
             "status": "ok",
