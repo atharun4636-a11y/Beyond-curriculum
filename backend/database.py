@@ -835,5 +835,13 @@ def init_db():
         FROM opportunities o, departments d
         WHERE o.isActive = 1 AND d.isActive = 1
     """, (now,))
+
+    # Map all active learning resources to active departments
+    cursor.execute("""
+        INSERT OR IGNORE INTO learning_resource_departments (learningResourceId, departmentId, createdAt)
+        SELECT r.id, d.id, ?
+        FROM learning_resources r, departments d
+        WHERE r.isActive = 1 AND d.isActive = 1
+    """, (now,))
     conn.commit()
     conn.close()

@@ -577,8 +577,8 @@ def get_hackathons_by_department(departmentId: int):
     cursor.execute("""
         SELECT DISTINCT h.*
         FROM hackathons h
-        JOIN hackathon_departments hd ON h.id = hd.hackathonId
-        WHERE hd.departmentId = ? AND h.isActive = 1
+        LEFT JOIN hackathon_departments hd ON h.id = hd.hackathonId
+        WHERE (hd.departmentId = ? OR hd.departmentId IS NULL) AND h.isActive = 1
         ORDER BY h.id DESC
     """, (departmentId,))
     rows = cursor.fetchall()
@@ -1264,8 +1264,8 @@ def get_resources_by_department(departmentId: int):
     cursor.execute("""
         SELECT DISTINCT r.*
         FROM learning_resources r
-        JOIN learning_resource_departments rd ON r.id = rd.learningResourceId
-        WHERE rd.departmentId = ? AND r.isActive = 1
+        LEFT JOIN learning_resource_departments rd ON r.id = rd.learningResourceId
+        WHERE (rd.departmentId = ? OR rd.departmentId IS NULL) AND r.isActive = 1
         ORDER BY r.id DESC
     """, (departmentId,))
     rows = cursor.fetchall()
