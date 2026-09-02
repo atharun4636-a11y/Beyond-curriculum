@@ -102,13 +102,13 @@ export const EmployeeDashboard = () => {
           <div className="stat-content">
             <span className="stat-label" style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Weekly Coding Practice</span>
             <span className="stat-val" style={{ fontSize: '1.5rem', fontWeight: 700, margin: '4px 0', color: 'var(--color-text-base)' }}>
-              {performance?.coding?.verified || 3} / {performance?.coding?.totalAssigned || 10} Solved
+              {performance?.coding?.verified ?? 0} / {performance?.coding?.totalAssigned ?? 0} Solved
             </span>
             <div className="progress-bar-container" style={{ height: '6px', backgroundColor: 'var(--color-bg-base)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
-              <div className="progress-bar-fill" style={{ height: '100%', backgroundColor: '#4f46e5', width: `${performance?.coding?.completionPercentage || 30}%`, borderRadius: '3px' }}></div>
+              <div className="progress-bar-fill" style={{ height: '100%', backgroundColor: '#4f46e5', width: `${performance?.coding?.completionPercentage ?? 0}%`, borderRadius: '3px' }}></div>
             </div>
             <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#4f46e5', fontWeight: 600 }}>
-              {performance?.coding?.completionPercentage || 30}% Verified Accuracy
+              {performance?.coding?.completionPercentage ?? 0}% Verified Accuracy
             </span>
           </div>
           <div className="emp-stat-icon p-coding" style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#4f46e515', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -121,10 +121,10 @@ export const EmployeeDashboard = () => {
           <div className="stat-content">
             <span className="stat-label" style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>AI Communication Practice</span>
             <span className="stat-val" style={{ fontSize: '1.5rem', fontWeight: 700, margin: '4px 0', color: 'var(--color-text-base)' }}>
-              {performance?.communication?.submissionsCount || 2} Stories
+              {performance?.communication?.submissionsCount ?? 0} Stories
             </span>
             <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#d97706', fontWeight: 600 }}>
-              ★ Avg Rating {performance?.communication?.avgOverallScore || 82.5}/100
+              {performance?.communication?.avgOverallScore > 0 ? `★ Avg Rating ${performance.communication.avgOverallScore}/100` : 'No Submissions Yet'}
             </span>
           </div>
           <div className="emp-stat-icon p-comm" style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#d9770615', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -141,7 +141,7 @@ export const EmployeeDashboard = () => {
             </span>
             <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>
               <CheckCircle size={12} style={{ display: 'inline', marginRight: 4 }} />
-              {registrations.filter(r => r.registrationStatus === 'VERIFIED').length || 1} Verified Registrations
+              {registrations.filter(r => r.registrationStatus === 'VERIFIED' || r.status === 'VERIFIED').length} Verified Registrations
             </span>
           </div>
           <div className="emp-stat-icon p-hackathon" style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#16a34a15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -154,16 +154,17 @@ export const EmployeeDashboard = () => {
           <div className="stat-content">
             <span className="stat-label" style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Overall Performance</span>
             <span className="stat-val" style={{ fontSize: '1.5rem', fontWeight: 700, margin: '4px 0', color: 'var(--color-text-base)' }}>
-              88.5% Index
+              {performance?.overallIndex ?? 0}% Index
             </span>
             <span className="stat-subtext" style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: 600 }}>
-              Advanced Practitioner Level
+              {(performance?.overallIndex || 0) > 75 ? 'Advanced Practitioner' : (performance?.overallIndex || 0) > 40 ? 'Intermediate Level' : 'Beginner / Getting Started'}
             </span>
           </div>
           <div className="emp-stat-icon p-rank" style={{ width: '42px', height: '42px', borderRadius: '10px', backgroundColor: '#0284c715', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Star size={20} color="#0284c7" />
           </div>
         </Card>
+
 
       </div>
 

@@ -23,47 +23,49 @@ export const EmployeeProgress = () => {
       setProgressData(data);
     } catch (err) {
       console.warn('Failed to fetch employee progress from API, using fallback data:', err);
-      // Clean fallback data
+      // Clean fallback data for brand new users
       setProgressData({
+        overallIndex: 0.0,
         coding: {
-          verified: 1,
-          submitted: 2,
-          inProgress: 3,
-          totalAssigned: 10,
-          completionPercentage: 10.0,
-          pythonVerified: 1,
+          verified: 0,
+          submitted: 0,
+          inProgress: 0,
+          totalAssigned: 0,
+          completionPercentage: 0.0,
+          pythonVerified: 0,
           sqlVerified: 0,
-          easyVerified: 1,
+          easyVerified: 0,
           medVerified: 0,
           hardVerified: 0
         },
         communication: {
-          submissionsCount: 4,
-          avgOverallScore: 82.5,
-          avgGrammar: 84.0,
-          avgVocabulary: 81.5,
-          avgPronunciation: 82.0,
-          wordsLearned: 40
+          submissionsCount: 0,
+          avgOverallScore: 0.0,
+          avgGrammar: 0.0,
+          avgVocabulary: 0.0,
+          avgPronunciation: 0.0,
+          wordsLearned: 0
         },
         hackathons: {
-          participated: 2,
-          projectsSubmitted: 1,
-          certificatesEarned: 4
+          participated: 0,
+          projectsSubmitted: 0,
+          certificatesEarned: 0
         },
         skillRadar: [
-          { subject: 'Python Coding', A: 75, fullMark: 100 },
-          { subject: 'SQL Databases', A: 65, fullMark: 100 },
-          { subject: 'English Fluency', A: 83, fullMark: 100 },
-          { subject: 'Problem Solving', A: 70, fullMark: 100 },
-          { subject: 'Architecture & Deploy', A: 85, fullMark: 100 }
+          { subject: 'Python Coding', A: 0, fullMark: 100 },
+          { subject: 'SQL Databases', A: 0, fullMark: 100 },
+          { subject: 'English Fluency', A: 0, fullMark: 100 },
+          { subject: 'Problem Solving', A: 0, fullMark: 100 },
+          { subject: 'Architecture & Deploy', A: 0, fullMark: 100 }
         ],
         monthlyTrend: [
-          { month: 'May', coding: 2, communication: 1 },
-          { month: 'Jun', coding: 4, communication: 3 },
-          { month: 'Jul', coding: 6, communication: 5 },
-          { month: 'Aug', coding: 10, communication: 8 }
+          { month: 'May', coding: 0, communication: 0 },
+          { month: 'Jun', coding: 0, communication: 0 },
+          { month: 'Jul', coding: 0, communication: 0 },
+          { month: 'Aug', coding: 0, communication: 0 }
         ]
       });
+
     } finally {
       setIsLoading(false);
     }

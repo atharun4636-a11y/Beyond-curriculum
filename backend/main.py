@@ -1919,7 +1919,7 @@ def get_employee_performance_progress(employee_id: str):
         submitted_coding = coding_status_map.get("SUBMITTED", 0)
         in_progress_coding = coding_status_map.get("IN_PROGRESS", 0)
         not_started_coding = coding_status_map.get("NOT_STARTED", 0)
-        total_assigned_coding = sum(coding_status_map.values()) or 10
+        total_assigned_coding = sum(coding_status_map.values())
 
         # Detailed breakdown of coding problems language & difficulty
         cursor.execute("""
@@ -1951,41 +1951,49 @@ def get_employee_performance_progress(employee_id: str):
         comm_row = cursor.fetchone()
 
         comm_submissions = comm_row["submission_count"] if comm_row and comm_row["submission_count"] else 0
-        avg_grammar = round(comm_row["avg_grammar"] or 78.0, 1)
-        avg_vocab = round(comm_row["avg_vocab"] or 82.0, 1)
-        avg_pronun = round((avg_grammar + avg_vocab) / 2, 1)
-        avg_comm_overall = round(comm_row["avg_overall"] or 78.5, 1)
+        avg_grammar = round(comm_row["avg_grammar"], 1) if (comm_row and comm_row["avg_grammar"] is not None) else 0.0
+        avg_vocab = round(comm_row["avg_vocab"], 1) if (comm_row and comm_row["avg_vocab"] is not None) else 0.0
+        avg_pronun = round((avg_grammar + avg_vocab) / 2, 1) if comm_submissions > 0 else 0.0
+        avg_comm_overall = round(comm_row["avg_overall"], 1) if (comm_row and comm_row["avg_overall"] is not None) else 0.0
 
-        # 3. Hackathons & Projects
-        cursor.execute("SELECT COUNT(*) FROM hackathons WHERE isActive = 1")
-        hack_res = cursor.fetchone()
-        hackathons_cnt = hack_res[0] if hack_res and hack_res[0] else 2
+        # 3. Real Employee Hackathon Registrations & Certificates
+        cursor.execute("SELECT COUNT(*) FROM employee_hackathon_registrations WHERE employeeId = ?", (employee_id,))
+        h_reg_row = cursor.fetchone()
+        hackathons_cnt = list(h_reg_row.values())[0] if isinstance(h_reg_row, dict) else (h_reg_row[0] if h_reg_row else 0)
+
+        cursor.execute("SELECT COUNT(*) FROM certificates WHERE employeeId = ?", (employee_id,))
+        cert_row = cursor.fetchone()
+        certs_cnt = list(cert_row.values())[0] if isinstance(cert_row, dict) else (cert_row[0] if cert_row else 0)
+
+        completion_pct = round((verified_coding / total_assigned_coding) * 100, 1) if total_assigned_coding > 0 else 0.0
+        overall_index = round((completion_pct + avg_comm_overall) / 2, 1) if (completion_pct > 0 or avg_comm_overall > 0) else 0.0
 
         # Skill Growth Radar calculated dynamically from real employee achievements
         skill_radar = [
-            {"subject": "Python Coding", "A": min(100, max(60, python_verified * 20 + 60)), "fullMark": 100},
-            {"subject": "SQL Databases", "A": min(100, max(60, sql_verified * 20 + 65)), "fullMark": 100},
+            {"subject": "Python Coding", "A": min(100, python_verified * 20), "fullMark": 100},
+            {"subject": "SQL Databases", "A": min(100, sql_verified * 20), "fullMark": 100},
             {"subject": "English Fluency", "A": int(avg_comm_overall), "fullMark": 100},
-            {"subject": "Problem Solving", "A": min(100, max(65, verified_coding * 10 + 60)), "fullMark": 100},
-            {"subject": "Architecture & Deploy", "A": 85, "fullMark": 100}
+            {"subject": "Problem Solving", "A": min(100, verified_coding * 10), "fullMark": 100},
+            {"subject": "Architecture & Deploy", "A": min(100, certs_cnt * 25), "fullMark": 100}
         ]
 
         # Monthly Activity Trend
         monthly_trend = [
-            {"month": "May", "coding": 2, "communication": 1},
-            {"month": "Jun", "coding": 4, "communication": 3},
-            {"month": "Jul", "coding": 6, "communication": 5},
-            {"month": "Aug", "coding": verified_coding + submitted_coding + 8, "communication": comm_submissions + 6}
+            {"month": "May", "coding": 0, "communication": 0},
+            {"month": "Jun", "coding": 0, "communication": 0},
+            {"month": "Jul", "coding": 0, "communication": 0},
+            {"month": "Aug", "coding": verified_coding + submitted_coding, "communication": comm_submissions}
         ]
 
         return {
             "employeeId": employee_id,
+            "overallIndex": overall_index,
             "coding": {
                 "verified": verified_coding,
                 "submitted": submitted_coding,
                 "inProgress": in_progress_coding,
                 "totalAssigned": total_assigned_coding,
-                "completionPercentage": round((verified_coding / total_assigned_coding) * 100, 1),
+                "completionPercentage": completion_pct,
                 "pythonVerified": python_verified,
                 "sqlVerified": sql_verified,
                 "easyVerified": easy_verified,
@@ -2002,12 +2010,13 @@ def get_employee_performance_progress(employee_id: str):
             },
             "hackathons": {
                 "participated": hackathons_cnt,
-                "projectsSubmitted": max(1, verified_coding // 2),
-                "certificatesEarned": 4
+                "projectsSubmitted": max(0, verified_coding // 2),
+                "certificatesEarned": certs_cnt
             },
             "skillRadar": skill_radar,
             "monthlyTrend": monthly_trend
         }
+
     finally:
         conn.close()
 
