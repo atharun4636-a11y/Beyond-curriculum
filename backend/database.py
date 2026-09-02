@@ -850,6 +850,24 @@ def init_db():
     res_count_row = cursor.fetchone()
     res_count = res_count_row[0] if res_count_row else 0
     if res_count < 10:
+        default_resources = [
+            ("PySpark & Big Data Pipeline Architecture Guide", "Comprehensive guide to building production ETL pipelines with Apache Spark and Delta Lake.", "https://spark.apache.org/docs/latest/", "manual", "res-1", "article", "Data Engineering", "PySpark, SQL, ETL, Delta Lake", "Intermediate", "Data Engineering", 1, "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&auto=format&fit=crop&q=60", "Apache Spark Core Team", now),
+            ("Building Generative AI Agents with LangChain & Python", "Step-by-step tutorial on building autonomous AI agents with tools and memory.", "https://python.langchain.com/docs/get_started/introduction", "manual", "res-2", "tutorial", "Cognitive Tech", "Python, LangChain, OpenAI, LLMs", "Advanced", "Cognitive Technology", 2, "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60", "LangChain Dev Team", now),
+            ("Cloud Microservices & Kubernetes Deployment Handbook", "Enterprise microservices architecture, Docker containerization, and K8s orchestration.", "https://kubernetes.io/docs/tutorials/", "manual", "res-3", "course", "Cloud & DevOps", "Docker, Kubernetes, AWS, DevOps", "Intermediate", "DCG", 3, "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60", "Kubernetes Docs", now),
+            ("Azure Data Factory & Data Lake Analytics Tutorial", "Learn cloud ETL automation, pipeline triggers, and data warehousing on Microsoft Azure.", "https://learn.microsoft.com/en-us/azure/data-factory/", "manual", "res-4", "documentation", "Cloud Data", "Azure, SQL, Data Factory, ETL", "Beginner", "Data Engineering", 1, "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&auto=format&fit=crop&q=60", "Microsoft Docs", now)
+        ]
+        for title, desc, url, src, sid, rtype, cat, skl, diff, dept, dept_id, thumb, author, pub_date in default_resources:
+            cursor.execute("SELECT id FROM learning_resources WHERE title = ?", (title,))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO learning_resources (
+                        title, description, url, source, sourceId, resourceType, category,
+                        skills, difficulty, department, departmentId, thumbnail, author, publishedAt,
+                        lastSyncedAt, isActive, createdAt, updatedAt, topic, skill, technology, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, 'ACTIVE')
+                """, (title, desc, url, src, sid, rtype, cat, skl, diff, dept, dept_id, thumb, author, pub_date, now, now, now, cat, skl, cat))
+        conn.commit()
+
         try:
             from services.resource_generator import generate_resources_batch
             generate_resources_batch(count=15)

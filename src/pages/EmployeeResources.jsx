@@ -8,7 +8,7 @@ import {
 import { getDB, setDB, defaultEmployees, defaultDepartments } from '../utils/db';
 import { 
   getRecommendedResources, getHackathonResources, getCurrentEmployeeId,
-  trackResourceProgressApi, getHackathonsByDepartment
+  trackResourceProgressApi, getHackathonsByDepartment, getResources, getResourcesByDepartment
 } from '../utils/api';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -50,23 +50,37 @@ export const EmployeeResources = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [recs, hacks] = await Promise.all([
-        getRecommendedResources(empId),
-        getHackathonsByDepartment(empDeptId)
+      const [recs, deptRes, allRes, hacks] = await Promise.all([
+        getRecommendedResources(empId).catch(() => []),
+        getResourcesByDepartment(empDeptId).catch(() => []),
+        getResources().catch(() => []),
+        getHackathonsByDepartment(empDeptId).catch(() => [])
       ]);
 
-      if (Array.isArray(recs)) {
-        const clean = recs.filter(r => !DEMO_TITLES.includes(r.title) && r.url && !r.url.includes('example.com') && r.url !== '#');
-        setRecommendedResources(clean);
+      let finalRecs = [];
+      if (Array.isArray(recs) && recs.length > 0) {
+        finalRecs = recs.filter(r => !DEMO_TITLES.includes(r.title));
       }
+      if (finalRecs.length === 0 && Array.isArray(deptRes) && deptRes.length > 0) {
+        finalRecs = deptRes;
+      }
+      if (finalRecs.length === 0 && Array.isArray(allRes) && allRes.length > 0) {
+        finalRecs = allRes;
+      }
+
+      setRecommendedResources(finalRecs);
 
       if (Array.isArray(hacks) && hacks.length > 0) {
         const primaryHack = hacks[0];
-        const hResources = await getHackathonResources(primaryHack.id);
-        if (Array.isArray(hResources)) {
+        const hResources = await getHackathonResources(primaryHack.id).catch(() => []);
+        if (Array.isArray(hResources) && hResources.length > 0) {
           const cleanHacks = hResources.filter(r => r.url && !r.url.includes('example.com') && r.url !== '#');
           setHackathonResources(cleanHacks);
+        } else if (finalRecs.length > 0) {
+          setHackathonResources(finalRecs.slice(0, 4));
         }
+      } else if (finalRecs.length > 0) {
+        setHackathonResources(finalRecs.slice(0, 4));
       }
     } catch (err) {
       console.warn('Failed to load personalized employee resources:', err);
