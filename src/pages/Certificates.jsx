@@ -194,7 +194,12 @@ export const Certificates = ({ role = 'employee' }) => {
                   </span>
                   
                   {role === 'admin' && cert.status === 'Pending' ? (
-                    <div className="admin-decision-btns">
+                    <div className="admin-decision-btns" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {cert.url && cert.url !== '#' && (
+                        <a href={cert.url} target="_blank" rel="noopener noreferrer" className="download-btn" style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}>
+                          View Document
+                        </a>
+                      )}
                       <Button size="sm" onClick={() => handleStatus(cert.id, 'Approved')} className="btn-approve">
                         Approve
                       </Button>

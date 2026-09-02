@@ -99,6 +99,7 @@ export const DashboardLayout = ({ role = 'employee', children }) => {
       items: [
         { name: 'Employee Directory', path: '/admin/employees', icon: Users },
         { name: 'Evaluations', path: '/admin/evaluations', icon: FileText },
+        { name: 'Certificates & Approvals', path: '/admin/certificates', icon: Award },
         { name: 'Communication', path: '/admin/communication', icon: MessageSquare },
         { name: 'Reports & Analytics', path: '/admin/reports', icon: FileText },
         { name: 'Feedback Reviews', path: '/admin/feedback', icon: HelpCircle },
