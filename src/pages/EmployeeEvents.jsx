@@ -3,7 +3,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Search, Calendar, MapPin, Clock, ExternalLink, Filter, Sparkles, Tag, Users, ShieldAlert, CheckCircle, Upload, FileText, X, RefreshCw } from 'lucide-react';
 import { getDB, defaultEmployees, defaultDepartments } from '../utils/db';
-import { getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations, syncAllSources } from '../utils/api';
+import { getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations, syncAllHackathons } from '../utils/api';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import '../pages/AdminEvents.css';
@@ -179,7 +179,14 @@ export const EmployeeEvents = () => {
 
   const currentDept = departments.find(d => d.id === employeeDeptId) || { name: 'Data Engineering' };
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const filteredEvents = events.filter(evt => {
+    // Automatically hide completed/past hackathons
+    if (evt.lastDate && evt.lastDate < todayStr && evt.eventDate && evt.eventDate < todayStr) {
+      return false;
+    }
+
     if (evt.eligibilityStatus && evt.eligibilityStatus !== 'eligible') return false;
     const eligLower = (evt.eligibility || '').toLowerCase();
     if (eligLower.includes('school student') || eligLower.includes('college student') || eligLower.includes('class 8-12') || eligLower.includes('students only')) {
@@ -199,7 +206,7 @@ export const EmployeeEvents = () => {
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      await syncAllSources();
+      await syncAllHackathons();
       await fetchDepartmentHackathons(employeeDeptId);
       alert('All external hackathon sources synced successfully!');
     } catch (err) {

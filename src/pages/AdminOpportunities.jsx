@@ -60,11 +60,17 @@ export const AdminOpportunities = () => {
     timezone: 'UTC', isOnline: true, location: 'Online', imageUrl: '', difficulty: 'Intermediate'
   });
 
-  const filtered = opportunities.filter(item => 
-    (item.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (item.source || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.skills || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const filtered = opportunities.filter(item => {
+    // Automatically hide completed/past webinars unless online
+    if (item.endDate && item.endDate < todayStr && !item.isOnline) {
+      return false;
+    }
+    return (item.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+           (item.source || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (item.skills || '').toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const handleOpenAdd = () => {
     setEditingItem(null);

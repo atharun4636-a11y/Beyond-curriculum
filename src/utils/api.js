@@ -304,6 +304,34 @@ export const syncSource = async (sourceId) => {
   }
 };
 
+export const syncHackathonSource = async (sourceId = 'UNSTOP') => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/sources/${sourceId}/sync`, { method: 'POST' });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to sync hackathon source ${sourceId}:`, error);
+    throw error;
+  }
+};
+
+export const syncAllHackathons = async () => {
+  const sources = ['1', '2', '3', 'UNSTOP', 'DEVPOST', 'HACKEREARTH'];
+  const results = [];
+  for (const src of sources) {
+    try {
+      const res = await syncHackathonSource(src);
+      results.push(res);
+    } catch (e) {
+      console.warn(`Sync hackathon source ${src} warning:`, e);
+    }
+  }
+  return results;
+};
+
 export const syncResources = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/resources/sync`, { method: 'POST' });

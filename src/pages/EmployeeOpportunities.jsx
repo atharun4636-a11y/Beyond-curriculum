@@ -39,14 +39,16 @@ export const EmployeeOpportunities = () => {
       } else {
         data = await getOpportunitiesByDepartment(deptId);
       }
-      if (Array.isArray(data)) {
+      if (Array.isArray(data) && data.length > 0) {
         setOpportunities(data);
       } else {
-        setOpportunities([]);
+        const localDBData = getDB('opportunities', []);
+        setOpportunities(localDBData);
       }
     } catch (err) {
-      console.warn(`Failed to fetch opportunities for department ${deptId}:`, err);
-      setOpportunities([]);
+      console.warn(`Failed to fetch opportunities for department ${deptId}, falling back to local storage:`, err);
+      const localDBData = getDB('opportunities', []);
+      setOpportunities(localDBData);
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +59,13 @@ export const EmployeeOpportunities = () => {
     getDepartments().then(d => { if (d && d.length) setDepartments(d); }).catch(() => {});
   }, [selectedDeptId]);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const filtered = opportunities.filter(opp => {
+    // Automatically hide completed/past webinars unless online
+    if (opp.endDate && opp.endDate < todayStr && !opp.isOnline) {
+      return false;
+    }
     const matchesSearch = (opp.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (opp.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (opp.skills || '').toLowerCase().includes(searchTerm.toLowerCase());

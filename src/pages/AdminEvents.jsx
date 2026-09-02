@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Search, Plus, Edit, Trash2, Calendar, MapPin, ExternalLink, X, Clock, CheckCircle, AlertOctagon, HelpCircle, RefreshCw } from 'lucide-react';
 import { getDB, setDB, defaultEvents } from '../utils/db';
-import { getHackathons, createHackathon, updateHackathon, deleteHackathon, syncAllSources } from '../utils/api';
+import { getHackathons, createHackathon, updateHackathon, deleteHackathon, syncAllHackathons } from '../utils/api';
 import './AdminEvents.css';
 
 export const AdminEvents = () => {
@@ -17,9 +17,16 @@ export const AdminEvents = () => {
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      await syncAllSources();
-      await loadHackathons();
-      alert('All external hackathon sources (Unstop, Devpost, HackerEarth, DEV.to) synced successfully!');
+      await syncAllHackathons();
+      const freshData = await getHackathons();
+      if (freshData && freshData.length > 0) {
+        setEvents(prev => {
+          const apiIds = new Set(freshData.map(d => String(d.id)));
+          const localOnly = prev.filter(p => !apiIds.has(String(p.id)));
+          return [...freshData, ...localOnly];
+        });
+      }
+      alert('All external hackathon sources (Unstop, Devpost, HackerEarth) synced successfully!');
     } catch (err) {
       console.error('Error syncing all sources:', err);
       await loadHackathons();
@@ -38,7 +45,13 @@ export const AdminEvents = () => {
     setLoading(true);
     try {
       const data = await getHackathons();
-      setEvents(data);
+      if (data && data.length > 0) {
+        setEvents(prev => {
+          const apiIds = new Set(data.map(d => String(d.id)));
+          const localOnly = prev.filter(p => !apiIds.has(String(p.id)));
+          return [...data, ...localOnly];
+        });
+      }
       setApiError(null);
     } catch (err) {
       console.error('FastAPI fetch error, falling back to local database:', err);
@@ -60,7 +73,13 @@ export const AdminEvents = () => {
     name: '', statement: '', organizer: '', mode: 'Online', location: '', regLink: '', lastDate: '', eventDate: '', poster: '', description: '', eligibility: 'Working Professionals'
   });
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const filteredEvents = events.filter(event => {
+    // Automatically hide completed/past hackathons
+    if (event.lastDate && event.lastDate < todayStr && event.eventDate && event.eventDate < todayStr) {
+      return false;
+    }
     const matchesSearch = (event.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (event.organizer || '').toLowerCase().includes(searchTerm.toLowerCase());
 
