@@ -3,7 +3,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Search, Calendar, MapPin, Clock, ExternalLink, Filter, Sparkles, Tag, Users, ShieldAlert, CheckCircle, Upload, FileText, X, RefreshCw } from 'lucide-react';
 import { getDB, defaultEmployees, defaultDepartments } from '../utils/db';
-import { getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations, syncAllHackathons } from '../utils/api';
+import { getHackathons, getHackathonsByDepartment, registerHackathonWithProof, getEmployeeHackathonRegistrations, syncAllHackathons } from '../utils/api';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import '../pages/AdminEvents.css';
@@ -187,18 +187,12 @@ export const EmployeeEvents = () => {
       return false;
     }
 
-    if (evt.eligibilityStatus && evt.eligibilityStatus !== 'eligible') return false;
-    const eligLower = (evt.eligibility || '').toLowerCase();
-    if (eligLower.includes('school student') || eligLower.includes('college student') || eligLower.includes('class 8-12') || eligLower.includes('students only')) {
-      return false;
-    }
-
     const matchesSearch = (evt.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (evt.statement || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (evt.skills || '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesMode = modeFilter === 'All' ? true : evt.mode.toLowerCase() === modeFilter.toLowerCase();
-    const matchesSource = sourceFilter === 'All' ? true : evt.source.toLowerCase() === sourceFilter.toLowerCase();
+    const matchesMode = modeFilter === 'All' ? true : (evt.mode || '').toLowerCase() === modeFilter.toLowerCase();
+    const matchesSource = sourceFilter === 'All' ? true : (evt.source || '').toLowerCase() === sourceFilter.toLowerCase();
 
     return matchesSearch && matchesMode && matchesSource;
   });

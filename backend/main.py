@@ -577,10 +577,9 @@ def get_hackathons_by_department(departmentId: int):
     cursor.execute("""
         SELECT DISTINCT h.*
         FROM hackathons h
-        LEFT JOIN hackathon_departments hd ON h.id = hd.hackathonId
-        WHERE (hd.departmentId = ? OR hd.departmentId IS NULL) AND h.isActive = 1
+        WHERE h.isActive = 1
         ORDER BY h.id DESC
-    """, (departmentId,))
+    """)
     rows = cursor.fetchall()
     conn.close()
     return [row_to_dict(row) for row in rows]
