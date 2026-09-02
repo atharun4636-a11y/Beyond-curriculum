@@ -1872,10 +1872,15 @@ def submit_problem_solution_api(problem_id: int, data: dict):
             conn = get_db_connection()
             cursor = conn.cursor()
 
+            if c_id:
+                cursor.execute("SELECT id FROM weekly_coding_assignments WHERE id = ?", (c_id,))
+                if not cursor.fetchone():
+                    c_id = None
+
             if not c_id:
                 cursor.execute("SELECT id FROM weekly_coding_assignments ORDER BY id DESC LIMIT 1")
                 ch_row = cursor.fetchone()
-                c_id = ch_row["id"] if ch_row else 1
+                c_id = list(ch_row.values())[0] if isinstance(ch_row, dict) else (ch_row[0] if ch_row else 5)
 
             cursor.execute("""
                 INSERT INTO coding_submissions (
@@ -1886,13 +1891,27 @@ def submit_problem_solution_api(problem_id: int, data: dict):
             sub_id = cursor.lastrowid
 
             cursor.execute("""
-                UPDATE employee_coding_assignments
-                SET status = 'SUBMITTED', submittedAt = ?, updatedAt = ?
+                SELECT id FROM employee_coding_assignments
                 WHERE employeeId = ? AND codingProblemId = ?
-            """, (now_str, now_str, emp_id, problem_id))
+            """, (emp_id, problem_id))
+            existing_assg = cursor.fetchone()
+
+            if existing_assg:
+                cursor.execute("""
+                    UPDATE employee_coding_assignments
+                    SET status = 'SUBMITTED', submittedAt = ?, updatedAt = ?
+                    WHERE employeeId = ? AND codingProblemId = ?
+                """, (now_str, now_str, emp_id, problem_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO employee_coding_assignments (
+                        assignmentId, employeeId, codingProblemId, status, submittedAt, createdAt, updatedAt
+                    ) VALUES (?, ?, ?, 'SUBMITTED', ?, ?, ?)
+                """, (c_id, emp_id, problem_id, now_str, now_str, now_str))
 
             conn.commit()
             return {"success": True, "message": "Solution submitted successfully! Awaiting Admin verification.", "submissionId": sub_id}
+
         except sqlite3.OperationalError as e:
             if "locked" in str(e).lower() and attempt < 4:
                 import time

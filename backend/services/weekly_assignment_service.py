@@ -106,17 +106,20 @@ def get_weekly_challenge_details(challenge_id: int = None, employee_id: str = No
 
     if challenge_id:
         cursor.execute("SELECT * FROM weekly_coding_assignments WHERE id = ?", (challenge_id,))
+        row = cursor.fetchone()
     else:
         week_start, _, _ = get_current_week_range()
         cursor.execute("SELECT * FROM weekly_coding_assignments WHERE weekStart = ?", (week_start,))
-        if not cursor.fetchone():
-            cursor.execute("SELECT * FROM weekly_coding_assignments ORDER BY weekStart DESC LIMIT 1")
+        row = cursor.fetchone()
 
-    cursor.execute("SELECT * FROM weekly_coding_assignments ORDER BY weekStart DESC LIMIT 1")
-    row = cursor.fetchone()
+    if not row:
+        cursor.execute("SELECT * FROM weekly_coding_assignments ORDER BY weekStart DESC LIMIT 1")
+        row = cursor.fetchone()
+
     if not row:
         conn.close()
         return {"challenge": None, "problems": [], "progress": {"solved": 0, "total": 0, "percentage": 0}}
+
 
     challenge = dict(row)
     c_id = challenge["id"]
@@ -143,54 +146,65 @@ def get_weekly_challenge_details(challenge_id: int = None, employee_id: str = No
     challenge["hardCount"] = hard_cnt
 
     # If employee_id is passed, get status & submission for each problem
+    submitted_count = 0
     verified_count = 0
     if employee_id:
         today_str = datetime.now().strftime("%Y-%m-%d")
 
         for p in problems:
             p_id = p["id"]
+
+            # 1. Fetch submission record if exists
+            cursor.execute("""
+                SELECT * FROM coding_submissions
+                WHERE employeeId = ? AND problemId = ?
+                ORDER BY id DESC LIMIT 1
+            """, (employee_id, p_id))
+            sub_row = cursor.fetchone()
+            p["submission"] = dict(sub_row) if sub_row else None
+
+            # 2. Fetch assignment status
             cursor.execute("""
                 SELECT * FROM employee_coding_assignments
-                WHERE assignmentId = ? AND employeeId = ? AND codingProblemId = ?
-            """, (c_id, employee_id, p_id))
+                WHERE employeeId = ? AND codingProblemId = ?
+            """, (employee_id, p_id))
             emp_assg_row = cursor.fetchone()
 
-            # Check if overdue
             status = "NOT_STARTED"
             if emp_assg_row:
                 status = emp_assg_row["status"]
-                if status in ["NOT_STARTED", "IN_PROGRESS"] and challenge.get("weekEnd") and challenge["weekEnd"] < today_str:
-                    status = "OVERDUE"
+            elif sub_row:
+                status = "SUBMITTED"
+
+            if status in ["NOT_STARTED", "IN_PROGRESS"] and challenge.get("weekEnd") and challenge["weekEnd"] < today_str:
+                status = "OVERDUE"
 
             p["status"] = status
-            p["isVerified"] = (status == "VERIFIED")
+            p["isVerified"] = (status in ["VERIFIED", "SUBMITTED"])
 
+            if status in ["SUBMITTED", "VERIFIED"]:
+                submitted_count += 1
             if status == "VERIFIED":
                 verified_count += 1
-
-            # Fetch submission record if exists
-            cursor.execute("""
-                SELECT * FROM coding_submissions
-                WHERE assignmentId = ? AND employeeId = ? AND problemId = ?
-                ORDER BY id DESC LIMIT 1
-            """, (c_id, employee_id, p_id))
-            sub_row = cursor.fetchone()
-            p["submission"] = dict(sub_row) if sub_row else None
 
     conn.close()
 
     total_probs = len(problems)
-    percentage = round((verified_count / max(1, total_probs)) * 100) if total_probs > 0 else 0
+    solved_cnt = submitted_count
+    percentage = round((solved_cnt / max(1, total_probs)) * 100) if total_probs > 0 else 0
 
     return {
         "challenge": challenge,
         "problems": problems,
         "progress": {
-            "solved": verified_count,
+            "solved": solved_cnt,
+            "submitted": submitted_count,
+            "verified": verified_count,
             "total": total_probs,
             "percentage": percentage
         }
     }
+
 
 def assign_challenge_to_target(challenge_id: int, target_type: str = "ALL", target_id: str = None):
     conn = get_db_connection()
