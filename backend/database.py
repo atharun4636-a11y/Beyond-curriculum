@@ -7,6 +7,24 @@ import shutil
 
 ORIG_DB_PATH = os.path.join(os.path.dirname(__file__), "hackathons.db")
 
+import re
+
+CAMEL_COLS = [
+    'passwordHash', 'employeeId', 'departmentId', 'isActive', 'createdAt', 'updatedAt',
+    'dateJoined', 'sourceType', 'baseUrl', 'apiUrl', 'lastSyncAt', 'lastDate', 'eventDate',
+    'regLink', 'sourceId', 'teamSize', 'sourceUrl', 'lastSyncedAt', 'eligibilityStatus',
+    'eligibilityReason', 'departmentName', 'departmentCode', 'hackathonId', 'resourceId',
+    'openedAt', 'completedAt', 'problemId', 'assignmentId', 'submissionId', 'opportunityId',
+    'wordId', 'profileImageUrl', 'videoUrl', 'audioUrl', 'fileUrl', 'certificateUrl'
+]
+
+def quote_camel(sql):
+    res = sql
+    for col in CAMEL_COLS:
+        pattern = r'(?<!")\b' + col + r'\b(?!")'
+        res = re.sub(pattern, f'"{col}"', res)
+    return res
+
 # PostgreSQL Wrapper Classes for transparent SQLite / PostgreSQL compatibility
 class PgCursorWrapper:
     def __init__(self, pg_cursor):
@@ -14,7 +32,7 @@ class PgCursorWrapper:
         self._lastrowid = None
 
     def execute(self, sql, params=None):
-        pg_sql = sql.replace('?', '%s')
+        pg_sql = quote_camel(sql.replace('?', '%s'))
         if 'INSERT OR IGNORE' in pg_sql:
             pg_sql = pg_sql.replace('INSERT OR IGNORE', 'INSERT')
             if 'ON CONFLICT' not in pg_sql:
@@ -50,13 +68,14 @@ class PgCursorWrapper:
         return self
 
     def executemany(self, sql, seq_of_params):
-        pg_sql = sql.replace('?', '%s')
+        pg_sql = quote_camel(sql.replace('?', '%s'))
         if 'INSERT OR IGNORE' in pg_sql:
             pg_sql = pg_sql.replace('INSERT OR IGNORE', 'INSERT')
             if 'ON CONFLICT' not in pg_sql:
                 pg_sql += ' ON CONFLICT DO NOTHING'
         self.cursor.executemany(pg_sql, seq_of_params)
         return self
+
 
     def fetchone(self):
         row = self.cursor.fetchone()
