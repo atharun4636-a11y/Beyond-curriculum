@@ -11,6 +11,7 @@ ORIG_DB_PATH = os.path.join(os.path.dirname(__file__), "hackathons.db")
 class PgCursorWrapper:
     def __init__(self, pg_cursor):
         self.cursor = pg_cursor
+        self._lastrowid = None
 
     def execute(self, sql, params=None):
         pg_sql = sql.replace('?', '%s')
@@ -26,10 +27,26 @@ class PgCursorWrapper:
         if pg_sql.strip().upper().startswith('PRAGMA'):
             return self
 
+        clean_sql = pg_sql.strip()
+        is_insert = clean_sql.upper().startswith('INSERT')
+        if is_insert and 'RETURNING' not in clean_sql.upper() and 'ON CONFLICT DO NOTHING' not in clean_sql.upper():
+            pg_sql += ' RETURNING id'
+
         if params is None:
             self.cursor.execute(pg_sql)
         else:
             self.cursor.execute(pg_sql, params)
+
+        if is_insert and ('RETURNING' in pg_sql.upper()):
+            try:
+                res = self.cursor.fetchone()
+                if res and isinstance(res, dict):
+                    self._lastrowid = list(res.values())[0]
+                elif res:
+                    self._lastrowid = res[0]
+            except Exception:
+                self._lastrowid = None
+
         return self
 
     def executemany(self, sql, seq_of_params):
@@ -55,15 +72,7 @@ class PgCursorWrapper:
 
     @property
     def lastrowid(self):
-        try:
-            res = self.cursor.fetchone()
-            if res and isinstance(res, dict):
-                return list(res.values())[0]
-            if res:
-                return res[0]
-        except Exception:
-            pass
-        return None
+        return self._lastrowid
 
 class PgConnectionWrapper:
     def __init__(self, pg_conn):
@@ -126,8 +135,13 @@ def get_db_connection():
 
 def init_db():
     conn = get_db_connection()
+    if isinstance(conn, PgConnectionWrapper):
+        conn.close()
+        return
+
     cursor = conn.cursor()
     now = datetime.now().isoformat()
+
     
     # 1. Hackathons Table
     cursor.execute("""
