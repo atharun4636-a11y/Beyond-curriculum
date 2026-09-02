@@ -834,6 +834,28 @@ def init_db():
         except Exception as sync_err:
             print("Auto-sync unstop warning in init_db:", sync_err)
 
+    # Auto-seed opportunities if count < 10
+    cursor.execute("SELECT COUNT(*) FROM opportunities")
+    opp_count_row = cursor.fetchone()
+    opp_count = opp_count_row[0] if opp_count_row else 0
+    if opp_count < 10:
+        try:
+            from services.opportunity_sync import sync_opportunities
+            sync_opportunities("ALL")
+        except Exception as opp_sync_err:
+            print("Auto-sync opportunities warning in init_db:", opp_sync_err)
+
+    # Auto-seed learning resources if count < 10
+    cursor.execute("SELECT COUNT(*) FROM learning_resources")
+    res_count_row = cursor.fetchone()
+    res_count = res_count_row[0] if res_count_row else 0
+    if res_count < 10:
+        try:
+            from services.resource_generator import generate_resources_batch
+            generate_resources_batch(count=15)
+        except Exception as res_sync_err:
+            print("Auto-sync resources warning in init_db:", res_sync_err)
+
     # Map all active hackathons to active departments so they appear on Employee pages
     cursor.execute("""
         INSERT OR IGNORE INTO hackathon_departments (hackathonId, departmentId, createdAt)

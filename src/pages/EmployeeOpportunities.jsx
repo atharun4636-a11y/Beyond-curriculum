@@ -177,6 +177,12 @@ export const EmployeeOpportunities = () => {
           title="No Upcoming Opportunities Found"
           description={`No upcoming webinars or technical events match your criteria for ${currentDept.name}.`}
         />
+      ) : filtered.length === 0 ? (
+        <EmptyState 
+          icon={Video}
+          title="No Upcoming Webinars Found"
+          description={`No upcoming webinars or technical events match your criteria for ${currentDept.name}.`}
+        />
       ) : (
         <div className="opportunities-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
           {filtered.map(opp => (
