@@ -803,22 +803,36 @@ def init_db():
         )
     """)
 
-    # Seed default hackathons if empty
+    # Seed default hackathons if empty or count < 10
     cursor.execute("SELECT COUNT(*) FROM hackathons")
     h_count_row = cursor.fetchone()
     h_count = h_count_row[0] if h_count_row else 0
-    if h_count == 0:
+    if h_count < 10:
         default_hacks = [
             ("AI Revolution Hackathon 2026", "Build next-generation generative AI agents for enterprise workflow automation.", "Google & OpenAI", "Online", "Global", "https://unstop.com", "2026-09-30", "2026-10-05", "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=60", "Build innovative AI solutions.", "UNSTOP", "1", "Generative AI", "Python, LangChain, FastAPI", "All Engineering Stream", "1-4 Members"),
             ("CodeArena 2026", "High-speed algorithmic problem solving and optimization contest.", "HackerRank", "Online", "Global", "https://hackerrank.com", "2026-09-25", "2026-09-28", "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&auto=format&fit=crop&q=60", "Algorithmic speed challenge.", "HACKERRANK", "2", "Algorithms", "Python, C++, Java, Data Structures", "Open to All", "Individual"),
-            ("Innovest 3.0", "Cloud-native microservices architecture and serverless data pipeline hackathon.", "AWS & Microsoft", "Hybrid", "Bengaluru, India", "https://devpost.com", "2026-10-15", "2026-10-20", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60", "Build resilient cloud systems.", "DEVPOST", "3", "Cloud & DevOps", "AWS, Docker, PySpark, SQL", "Full-time Employees", "2-5 Members")
+            ("Innovest 3.0", "Cloud-native microservices architecture and serverless data pipeline hackathon.", "AWS & Microsoft", "Hybrid", "Bengaluru, India", "https://devpost.com", "2026-10-15", "2026-10-20", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60", "Build resilient cloud systems.", "DEVPOST", "3", "Cloud & DevOps", "AWS, Docker, PySpark, SQL", "Full-time Employees", "2-5 Members"),
+            ("Megathon'26 – Fusion For Future", "Participate in Megathon'26 organized by Saveetha Engineering College on Unstop.", "Saveetha Engineering College", "Online", "Chennai, India", "https://unstop.com/hackathons/megathon26-fusion-for-future-saveetha-engineering-college-sec-chennai-1405230", "2026-09-11", "2026-09-11", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=500&auto=format&fit=crop&q=60", "Innovation and Software Development.", "UNSTOP", "unstop-1405230", "Software Engineering", "SDLC, Innovation, Problem Solving", "All Eligible Students & Employees", "1-4 Members"),
+            ("Hack It On'26", "Participate in Hack It On'26 organized by KPR Institute of Engineering and Technology on Unstop.", "KPRIET", "Online", "Coimbatore, India", "https://unstop.com/hackathons/hack-it-on26-kpr-institute-of-engineering-and-technology-kpriet-coimbatore-1406121", "2026-10-04", "2026-10-04", "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&auto=format&fit=crop&q=60", "Artificial Intelligence & IoT Challenge.", "UNSTOP", "unstop-1406121", "Artificial Intelligence", "AI, Machine Learning, IoT", "All Eligible Students & Employees", "1-4 Members"),
+            ("HACKDAY 1.0", "Participate in HACKDAY 1.0 organized by DECODEP community on Unstop.", "DECODEP", "Online", "Online", "https://unstop.com/hackathons/hackday-10-decodep-1407890", "2026-09-20", "2026-09-20", "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=60", "AI and Creative Problem Solving.", "UNSTOP", "unstop-1407890", "Artificial Intelligence", "AI, Creative Thinking", "All Eligible Students & Employees", "1-4 Members"),
+            ("BOSS $1000 Contributor Hackathon", "The governed workspace for AI agents contributor hackathon.", "BOSS Console", "Online", "Global", "https://unstop.com/hackathons/boss-contributor-1408100", "2026-10-01", "2026-10-10", "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&auto=format&fit=crop&q=60", "AI Agents and Open Source Contribution.", "UNSTOP", "unstop-1408100", "AI Agents", "Python, LLMs, AI Agents", "Employees Eligible", "1-4 Members"),
+            ("HackCelestial 3.0", "Space tech and cloud architecture national hackathon.", "HackCelestial", "Online", "Global", "https://unstop.com/hackathons/hackcelestial-30-1409200", "2026-10-15", "2026-10-20", "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60", "Cloud and Space Systems.", "UNSTOP", "unstop-1409200", "Cloud Systems", "Cloud, Microservices", "Employees Eligible", "1-4 Members")
         ]
         for name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz in default_hacks:
-            cursor.execute("""
-                INSERT INTO hackathons (name, statement, organizer, mode, location, regLink, lastDate, eventDate, poster, description, source, sourceId, category, skills, eligibility, teamSize, isActive, createdAt, updatedAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-            """, (name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz, now, now))
+            cursor.execute("SELECT id FROM hackathons WHERE source = ? AND sourceId = ?", (src, sid))
+            if not cursor.fetchone():
+                cursor.execute("""
+                    INSERT INTO hackathons (name, statement, organizer, mode, location, regLink, lastDate, eventDate, poster, description, source, sourceId, category, skills, eligibility, teamSize, isActive, createdAt, updatedAt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                """, (name, stmt, org, mode, loc, rlink, ldate, edate, poster, desc, src, sid, cat, skl, elig, tsz, now, now))
         conn.commit()
+
+        # Trigger background live sync from Unstop connectors
+        try:
+            from services.source_sync import sync_source
+            sync_source("UNSTOP")
+        except Exception as sync_err:
+            print("Auto-sync unstop warning in init_db:", sync_err)
 
     # Map all active hackathons to active departments so they appear on Employee pages
     cursor.execute("""
