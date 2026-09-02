@@ -9,21 +9,10 @@ ORIG_DB_PATH = os.path.join(os.path.dirname(__file__), "hackathons.db")
 
 import re
 
-CAMEL_COLS = [
-    'passwordHash', 'employeeId', 'departmentId', 'isActive', 'createdAt', 'updatedAt',
-    'dateJoined', 'sourceType', 'baseUrl', 'apiUrl', 'lastSyncAt', 'lastDate', 'eventDate',
-    'regLink', 'sourceId', 'teamSize', 'sourceUrl', 'lastSyncedAt', 'eligibilityStatus',
-    'eligibilityReason', 'departmentName', 'departmentCode', 'hackathonId', 'resourceId',
-    'openedAt', 'completedAt', 'problemId', 'assignmentId', 'submissionId', 'opportunityId',
-    'wordId', 'profileImageUrl', 'videoUrl', 'audioUrl', 'fileUrl', 'certificateUrl'
-]
-
 def quote_camel(sql):
-    res = sql
-    for col in CAMEL_COLS:
-        pattern = r'(?<!")\b' + col + r'\b(?!")'
-        res = re.sub(pattern, f'"{col}"', res)
-    return res
+    pattern = r'(?<!")\b([a-z]+[A-Z][a-zA-Z0-9]*)\b(?!")'
+    return re.sub(pattern, r'"\1"', sql)
+
 
 # PostgreSQL Wrapper Classes for transparent SQLite / PostgreSQL compatibility
 class PgCursorWrapper:

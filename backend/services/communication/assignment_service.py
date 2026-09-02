@@ -159,7 +159,9 @@ def get_admin_communication_dashboard():
 
     # Total employees
     cursor.execute("SELECT COUNT(*) FROM employees WHERE role = 'employee' AND isActive = 1")
-    total_employees = cursor.fetchone()[0] or 1
+    t_row = cursor.fetchone()
+    total_employees = (list(t_row.values())[0] if isinstance(t_row, dict) else t_row[0]) if t_row else 1
+
 
     # Assignments list
     cursor.execute("SELECT * FROM communication_assignments ORDER BY id DESC")

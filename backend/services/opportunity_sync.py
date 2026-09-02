@@ -150,10 +150,12 @@ def sync_opportunities(source_code: str = "ALL") -> Dict[str, Any]:
 
     # Mark expired events if end date is in the past
     cursor.execute("SELECT COUNT(*) FROM opportunities WHERE endDate != '' AND endDate < ?", (today_str,))
-    expired_count = cursor.fetchone()[0]
+    exp_row = cursor.fetchone()
+    expired_count = list(exp_row.values())[0] if isinstance(exp_row, dict) else (exp_row[0] if exp_row else 0)
 
     conn.commit()
     conn.close()
+
 
     return {
         "status": "success",
