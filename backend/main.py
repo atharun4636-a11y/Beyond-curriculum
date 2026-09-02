@@ -1224,10 +1224,24 @@ def get_hackathon_resources_api(hackathon_id: int):
 
 @app.post("/api/resources/generate")
 def generate_resources_api(data: dict = {}):
-    dept_id = data.get("departmentId")
+    raw_dept = data.get("departmentId")
+    dept_id = 0
+    if raw_dept is not None and str(raw_dept).lower() != "all" and str(raw_dept).isdigit():
+        dept_id = int(raw_dept)
+        
     topic = data.get("topic")
+    if str(topic).lower() == "all" or not topic:
+        topic = None
+        
     difficulty = data.get("difficulty")
-    count = int(data.get("count", 10))
+    if str(difficulty).lower() == "all" or not difficulty:
+        difficulty = None
+        
+    try:
+        count = int(data.get("count", 10))
+    except (ValueError, TypeError):
+        count = 10
+
     source = data.get("source")
     return generate_resources_batch(department_id=dept_id, topic=topic, difficulty=difficulty, count=count, source=source)
 

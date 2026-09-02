@@ -97,14 +97,23 @@ def generate_resources_batch(department_id: int = None, topic: str = None, diffi
     try:
         candidates = list(TRUSTED_RESOURCE_CATALOG)
         
-        if department_id and department_id != 0:
-            candidates = [c for c in candidates if c.get("deptId") == department_id or c.get("deptId") == 1]
+        try:
+            dept_int = int(department_id) if department_id and str(department_id).isdigit() else 0
+        except (ValueError, TypeError):
+            dept_int = 0
+
+        if dept_int != 0:
+            candidates = [c for c in candidates if c.get("deptId") == dept_int or c.get("deptId") == 1]
             
-        if topic and topic != "All":
-            candidates = [c for c in candidates if topic.lower() in c.get("topic", "").lower() or topic.lower() in c.get("title", "").lower()]
+        if topic and str(topic).lower() != "all":
+            filtered_c = [c for c in candidates if str(topic).lower() in c.get("topic", "").lower() or str(topic).lower() in c.get("title", "").lower()]
+            if filtered_c:
+                candidates = filtered_c
             
-        if difficulty and difficulty != "All":
-            candidates = [c for c in candidates if c.get("difficulty", "").lower() == difficulty.lower()]
+        if difficulty and str(difficulty).lower() != "all":
+            filtered_d = [c for c in candidates if c.get("difficulty", "").lower() == str(difficulty).lower()]
+            if filtered_d:
+                candidates = filtered_d
 
         if not candidates:
             candidates = list(TRUSTED_RESOURCE_CATALOG)
