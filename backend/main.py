@@ -68,15 +68,7 @@ app.add_middleware(
 
 
 
-# Initialize Database & Scheduler on Application Startup (only when not on Vercel)
-@app.on_event("startup")
-def startup_event():
-    if not os.environ.get("VERCEL"):
-        try:
-            init_db()
-            start_scheduler()
-        except Exception as e:
-            print(f"Startup Notice: {e}")
+
 
 
 # Helper function to convert SQLite Row to Dict
