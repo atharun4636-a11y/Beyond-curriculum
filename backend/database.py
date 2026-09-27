@@ -107,7 +107,8 @@ class PgConnectionWrapper:
         cur.execute(sql, params)
         return cur
 
-DEFAULT_SUPABASE_URL = "postgresql://postgres.bydjttcpaglqdyjyiozk:%40atharun4636@aws-0-ap-southeast-2.pooler.supabase.com:5432/postgres"
+DEFAULT_SUPABASE_URL = "postgresql://postgres.bydjttcpaglqdyjyiozk:%40atharun4636@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres"
+
 
 def get_db_connection():
     db_url = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL") or DEFAULT_SUPABASE_URL
