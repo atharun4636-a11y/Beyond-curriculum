@@ -7,7 +7,13 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 try:
-    from main import app
+    from fastapi import FastAPI
+    from main import app as backend_app
+
+    app = FastAPI()
+    app.mount("/api", backend_app)
+    app.mount("/", backend_app)
+
 except Exception as e:
     err_str = traceback.format_exc()
     from fastapi import FastAPI
@@ -18,6 +24,7 @@ except Exception as e:
     @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
     def catch_all(path: str):
         return JSONResponse(status_code=500, content={"error": str(e), "traceback": err_str})
+
 
 
 
