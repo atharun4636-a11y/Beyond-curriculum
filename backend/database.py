@@ -117,9 +117,13 @@ def get_db_connection():
         import psycopg2.extras
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
-        conn = psycopg2.connect(db_url)
-        conn.autocommit = True
-        return PgConnectionWrapper(conn)
+        try:
+            conn = psycopg2.connect(db_url, connect_timeout=10)
+            conn.autocommit = True
+            return PgConnectionWrapper(conn)
+        except Exception as e:
+            print(f"Primary PG Connection error: {e}")
+
 
 
     # Local / Serverless SQLite Fallback

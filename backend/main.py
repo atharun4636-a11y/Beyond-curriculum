@@ -100,112 +100,119 @@ def get_health():
     }
 
 
-# ==================== AUTHENTICATION ENDPOINTS ====================
-
 @app.post("/api/auth/login")
 @app.post("/auth/login")
 def login(req: LoginRequest):
+    try:
+        identifier = req.identifier.strip().lower()
+        password = req.password.strip()
 
-    identifier = req.identifier.strip().lower()
-    password = req.password.strip()
+        # 1. Hardcoded Admin Authentication Check
+        if identifier in ["admin", "admin@company.com"] and password in ["admin123", "admin"]:
+            user_data = {
+                "id": 0,
+                "employeeId": "ADMIN001",
+                "name": "System Administrator",
+                "fullName": "System Administrator",
+                "email": "admin@company.com",
+                "role": "admin",
+                "departmentId": None,
+                "department": {"id": 0, "name": "Administration", "code": "ADMIN"},
+                "isActive": True,
+                "photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"
+            }
+            token = create_access_token(user_data)
+            return {
+                "status": "success",
+                "message": "Admin authenticated successfully",
+                "token": token,
+                "user": user_data
+            }
 
-    # 1. Hardcoded Admin Authentication Check
-    if identifier in ["admin", "admin@company.com"] and password in ["admin123", "admin"]:
+        # 2. Database Employee Authentication Check
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT e.*, d.name AS departmentName, d.code AS departmentCode
+            FROM employees e
+            LEFT JOIN departments d ON e.departmentId = d.id
+            WHERE LOWER(e.email) = ? OR LOWER(e.employeeId) = ?
+        """, (identifier, identifier))
+        row = cursor.fetchone()
+
+        if not row:
+            conn.close()
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid employee ID/email or password"
+            )
+
+        emp = dict(row)
+
+        # Verify Active Status
+        if not emp.get("isActive"):
+            conn.close()
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account is deactivated/suspended. Please contact your administrator."
+            )
+
+        # Password Verification
+        stored_hash = emp.get("passwordHash")
+        
+        # If no password hash exists yet, generate default hash
+        if not stored_hash:
+            default_pass = f"{emp['employeeId']}@2026"
+            stored_hash = hash_password(default_pass)
+            cursor.execute("UPDATE employees SET passwordHash = ? WHERE id = ?", (stored_hash, emp["id"]))
+            conn.commit()
+
+        # Verify Password
+        if not verify_password(password, stored_hash) and password != f"{emp['employeeId']}@2026":
+            conn.close()
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid employee ID/email or password"
+            )
+
+        conn.close()
+
         user_data = {
-            "id": 0,
-            "employeeId": "ADMIN001",
-            "name": "System Administrator",
-            "fullName": "System Administrator",
-            "email": "admin@company.com",
-            "role": "admin",
-            "departmentId": None,
-            "department": {"id": 0, "name": "Administration", "code": "ADMIN"},
-            "isActive": True,
-            "photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60"
+            "id": emp["id"],
+            "employeeId": emp["employeeId"],
+            "name": emp["name"],
+            "fullName": emp["name"],
+            "email": emp["email"],
+            "role": emp.get("role") or "employee",
+            "departmentId": emp.get("departmentId"),
+            "department": {
+                "id": emp.get("departmentId") or 1,
+                "name": emp.get("departmentName") or "Data Engineering",
+                "code": emp.get("departmentCode") or "DE"
+            },
+            "designation": emp.get("designation") or "Software Engineer",
+            "phone": emp.get("phone") or "",
+            "score": emp.get("score") or 0,
+            "photo": emp.get("photo") or emp.get("profileImageUrl") or "",
+            "isActive": True
         }
+
         token = create_access_token(user_data)
         return {
             "status": "success",
-            "message": "Admin authenticated successfully",
+            "message": "Authenticated successfully",
             "token": token,
             "user": user_data
         }
-
-    # 2. Database Employee Authentication Check
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT e.*, d.name AS departmentName, d.code AS departmentCode
-        FROM employees e
-        LEFT JOIN departments d ON e.departmentId = d.id
-        WHERE LOWER(e.email) = ? OR LOWER(e.employeeId) = ?
-    """, (identifier, identifier))
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid employee ID/email or password"
+            status_code=500,
+            detail=f"Login Error: {str(e)} | Trace: {traceback.format_exc()}"
         )
 
-    emp = dict(row)
-
-    # Verify Active Status
-    if not emp.get("isActive"):
-        conn.close()
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated/suspended. Please contact your administrator."
-        )
-
-    # Password Verification
-    stored_hash = emp.get("passwordHash")
-    
-    # If no password hash exists yet, generate default hash
-    if not stored_hash:
-        default_pass = f"{emp['employeeId']}@2026"
-        stored_hash = hash_password(default_pass)
-        cursor.execute("UPDATE employees SET passwordHash = ? WHERE id = ?", (stored_hash, emp["id"]))
-        conn.commit()
-
-    # Verify Password
-    if not verify_password(password, stored_hash) and password != f"{emp['employeeId']}@2026":
-        conn.close()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid employee ID/email or password"
-        )
-
-    conn.close()
-
-    user_data = {
-        "id": emp["id"],
-        "employeeId": emp["employeeId"],
-        "name": emp["name"],
-        "fullName": emp["name"],
-        "email": emp["email"],
-        "role": emp.get("role") or "employee",
-        "departmentId": emp.get("departmentId"),
-        "department": {
-            "id": emp.get("departmentId") or 1,
-            "name": emp.get("departmentName") or "Data Engineering",
-            "code": emp.get("departmentCode") or "DE"
-        },
-        "designation": emp.get("designation") or "Software Engineer",
-        "phone": emp.get("phone") or "",
-        "score": emp.get("score") or 0,
-        "photo": emp.get("photo") or emp.get("profileImageUrl") or "",
-        "isActive": True
-    }
-
-    token = create_access_token(user_data)
-    return {
-        "status": "success",
-        "message": "Authenticated successfully",
-        "token": token,
-        "user": user_data
-    }
 
 @app.post("/api/auth/register")
 def register_employee(req: RegisterRequest):
