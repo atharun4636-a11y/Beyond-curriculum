@@ -437,9 +437,10 @@ export const Login = () => {
         )}
 
         <div className="login-hint" style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          <p><strong>Admin Credentials:</strong> admin@company.com / admin123</p>
-          <p><strong>Employee Credentials:</strong> EMP001 / EMP001@2026 (or your registered official email)</p>
+          <p><strong>Admin Credentials:</strong> admin@company.com (Password: admin123)</p>
+          <p><strong>Employee Credentials:</strong> Employee ID: EMP001 / Email: john.doe@company.com (Password: EMP001@2026 or your custom registered password)</p>
         </div>
+
       </Card>
     </div>
   );
