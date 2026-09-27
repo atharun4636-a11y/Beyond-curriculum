@@ -65,13 +65,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def api_path_middleware(request, call_next):
-    path = request.scope.get("path", "")
-    if path and not path.startswith("/api/"):
-        request.scope["path"] = "/api" + path
-    response = await call_next(request)
-    return response
+
 
 
 # Initialize Database & Scheduler on Application Startup (only when not on Vercel)
