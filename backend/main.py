@@ -94,10 +94,11 @@ def get_health():
 
 @app.post("/api/auth/login")
 @app.post("/auth/login")
-def login(req: LoginRequest):
+def login(data: dict):
     try:
-        identifier = req.identifier.strip().lower()
-        password = req.password.strip()
+        identifier = str(data.get("identifier") or data.get("email") or data.get("employeeId") or "").strip().lower()
+        password = str(data.get("password") or "").strip()
+
 
         # 1. Hardcoded Admin Authentication Check
         if identifier in ["admin", "admin@company.com"] and password in ["admin123", "admin"]:
