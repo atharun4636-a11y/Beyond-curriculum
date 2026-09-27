@@ -89,6 +89,7 @@ def row_to_dict(row: sqlite3.Row) -> dict:
 # ==================== GENERAL & HEALTH ENDPOINTS ====================
 
 @app.get("/api/health")
+@app.get("/health")
 def get_health():
     return {
         "status": "ok",
@@ -99,7 +100,9 @@ def get_health():
 # ==================== AUTHENTICATION ENDPOINTS ====================
 
 @app.post("/api/auth/login")
+@app.post("/auth/login")
 def login(req: LoginRequest):
+
     identifier = req.identifier.strip().lower()
     password = req.password.strip()
 
