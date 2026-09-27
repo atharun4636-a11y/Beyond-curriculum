@@ -40,7 +40,12 @@ from services.weekly_assignment_service import (
     get_all_employees_weekly_progress,
     get_current_week_range
 )
-from services.scheduler import start_scheduler
+try:
+    from services.scheduler import start_scheduler
+except Exception:
+    def start_scheduler():
+        pass
+
 
 app = FastAPI(title="Hackathon Portal API")
 
