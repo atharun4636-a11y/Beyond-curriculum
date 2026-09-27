@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+import sys
+import os
 
-app = FastAPI()
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend"))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
-@app.get("/api/health")
-def health():
-    return {"status": "ok"}
+from main import app
+
 
 
 
